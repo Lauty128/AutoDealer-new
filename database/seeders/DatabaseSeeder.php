@@ -2,18 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\Store;
 use App\Models\StoreService;
-use App\Models\VehicleType;
-use App\Models\VehicleMark;
+use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleDetail;
 use App\Models\VehicleImage;
+use App\Models\VehicleMark;
+use App\Models\VehicleType;
 use App\Models\VehicleTypeTemplate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,10 +23,10 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Create Default User
         $user = User::updateOrCreate(
-            ['email' => 'admin@autodealer.com'],
+            ['email' => 'lautarosilverii@gmail.com'],
             [
                 'name' => 'Admin AutoDealer',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('12345'),
             ]
         );
 
@@ -50,9 +49,9 @@ class DatabaseSeeder extends Seeder
                 'working_hours' => [
                     'lunes_a_viernes' => '09:00 - 19:00',
                     'sabados' => '09:00 - 13:00',
-                    'domingos' => 'Cerrado'
+                    'domingos' => 'Cerrado',
                 ],
-                'custom_css' => '/* Estilos premium para AutoDealer HQ */' . "\n" . '.store-title { font-weight: 800; text-transform: uppercase; }',
+                'custom_css' => '/* Estilos premium para AutoDealer HQ */'."\n".'.store-title { font-weight: 800; text-transform: uppercase; }',
             ]
         );
 
@@ -74,7 +73,7 @@ class DatabaseSeeder extends Seeder
                 'working_hours' => [
                     'lunes_a_viernes' => '09:00 - 18:30',
                     'sabados' => '10:00 - 14:00',
-                    'domingos' => 'Cerrado'
+                    'domingos' => 'Cerrado',
                 ],
             ]
         );

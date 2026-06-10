@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class VehicleMark extends Model
 {
@@ -25,6 +26,20 @@ class VehicleMark extends Model
         'name',
         'slug',
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function ($model) {
+            Cache::forget('vehicles_marks');
+        });
+
+        static::deleted(function ($model) {
+            Cache::forget('vehicles_marks');
+        });
+    }
 
     /**
      * Get the vehicles of this brand/mark.

@@ -1,14 +1,42 @@
+import { useSidebar } from '@/components/ui/sidebar';
 import AppLogoIcon from './app-logo-icon';
 
 export default function AppLogo() {
+    const { state } = useSidebar();
+    const isCollapsed = state === 'collapsed';
+
     return (
-        <>
-            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-md">
-                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-            </div>
-            <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-none font-semibold">Laravel Starter Kit</span>
-            </div>
-        </>
+        <div className="flex items-center gap-2 overflow-hidden">
+            {isCollapsed ? (
+                /* Collapsed: show only the square shield icon logo */
+                <div className="flex items-center py-1">
+                    <img
+                        src="/assets/logo.png"
+                        alt="AutoDealer"
+                        className="h-100 object-contain dark:hidden"
+                    />
+                    <img
+                        src="/assets/logo-dark.png"
+                        alt="AutoDealer"
+                        className="h-100 object-contain hidden dark:block"
+                    />
+                </div>
+
+            ) : (
+                /* Expanded: show full horizontal logo */
+                <div className="flex items-center py-1">
+                    <img
+                        src="/assets/logo-h.png"
+                        alt="AutoDealer"
+                        className="h-100 object-contain dark:hidden"
+                    />
+                    <img
+                        src="/assets/logo-h-dark.png"
+                        alt="AutoDealer"
+                        className="h-100 object-contain hidden dark:block"
+                    />
+                </div>
+            )}
+        </div>
     );
 }

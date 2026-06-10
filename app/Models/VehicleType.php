@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class VehicleType extends Model
 {
@@ -25,6 +26,20 @@ class VehicleType extends Model
         'name',
         'slug',
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function ($model) {
+            Cache::forget('vehicles_types');
+        });
+
+        static::deleted(function ($model) {
+            Cache::forget('vehicles_types');
+        });
+    }
 
     /**
      * Get the vehicles of this type.

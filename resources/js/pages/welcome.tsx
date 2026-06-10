@@ -18,7 +18,7 @@ export default function Welcome() {
                                 href={route('dashboard')}
                                 className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
                             >
-                                Dashboard
+                                Panel de Control
                             </Link>
                         ) : (
                             <>
@@ -26,13 +26,13 @@ export default function Welcome() {
                                     href={route('login')}
                                     className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
                                 >
-                                    Log in
+                                    Iniciar sesión
                                 </Link>
                                 <Link
                                     href={route('register')}
                                     className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
                                 >
-                                    Register
+                                    Registrarse
                                 </Link>
                             </>
                         )}
@@ -46,7 +46,7 @@ export default function Welcome() {
                 </main>
 
                 <footer className="py-4 text-center text-xs text-[#706f6c] dark:text-[#A1A09A]">
-                    &copy; {new Date().getFullYear()} AutoDealer. All rights reserved.
+                    &copy; {new Date().getFullYear()} AutoDealer. Todos los derechos reservados.
                 </footer>
             </div>
         </>

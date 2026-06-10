@@ -30,11 +30,15 @@ class AuthController extends Controller
 
         $token = $user->createToken('autodealer-api-token')->plainTextToken;
 
+        // Eager load stores and their services
+        $stores = $user->stores()->with('services')->get();
+
         return response()->json([
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'stores' => $stores,
             ],
             'token' => $token,
         ]);
