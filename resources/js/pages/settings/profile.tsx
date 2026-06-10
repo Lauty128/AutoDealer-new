@@ -38,7 +38,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
             <Head title="Configuración de perfil" />
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div className="space-y-6 md:max-w-2xl">
                     <HeadingSmall title="Información de perfil" description="Actualiza tu nombre y dirección de correo electrónico" />
 
                     <form onSubmit={submit} className="space-y-6">

@@ -1,5 +1,4 @@
 import { useSidebar } from '@/components/ui/sidebar';
-import AppLogoIcon from './app-logo-icon';
 
 export default function AppLogo() {
     const { state } = useSidebar();

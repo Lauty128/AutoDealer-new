@@ -53,7 +53,7 @@ export default function Password() {
             <Head title="Configuración de contraseña" />
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div className="space-y-6 md:max-w-2xl">
                     <HeadingSmall title="Actualizar contraseña" description="Asegúrate de que tu cuenta use una contraseña larga y aleatoria para mantenerse segura" />
 
                     <form onSubmit={updatePassword} className="space-y-6">
