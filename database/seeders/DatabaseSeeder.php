@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Admin AutoDealer',
                 'password' => Hash::make('12345'),
+                'is_superadmin' => true,
             ]
         );
 
@@ -156,29 +157,43 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Honda']
         );
 
+        // 4b. Seed Vehicle Fuels
+        $fuels = ['Nafta', 'Diesel', 'Híbrido', 'Eléctrico', 'GNC'];
+        foreach ($fuels as $fuelName) {
+            \App\Models\VehicleFuel::updateOrCreate(['name' => $fuelName]);
+        }
+
         // 5. Create Vehicle Type Templates
         // Templates for Cars
         $carTemplates = [
-            ['label' => 'doors', 'default_value' => '4'],
-            ['label' => 'transmission', 'default_value' => 'Manual'],
-            ['label' => 'air_conditioning', 'default_value' => 'Yes'],
+            ['label' => 'puertas', 'type' => 'number', 'default_value' => '4', 'options' => null],
+            ['label' => 'transmision', 'type' => 'select', 'default_value' => 'Manual', 'options' => ['Manual', 'Automático']],
+            ['label' => 'aire_acondicionado', 'type' => 'select', 'default_value' => 'Sí', 'options' => ['Sí', 'No']],
         ];
         foreach ($carTemplates as $tpl) {
             VehicleTypeTemplate::updateOrCreate(
                 ['vehicle_type_id' => $carType->id, 'label' => $tpl['label']],
-                ['default_value' => $tpl['default_value']]
+                [
+                    'type' => $tpl['type'],
+                    'options' => $tpl['options'],
+                    'default_value' => $tpl['default_value']
+                ]
             );
         }
 
         // Templates for Motorcycles
         $motorcycleTemplates = [
-            ['label' => 'cylinder_capacity', 'default_value' => '150cc'],
-            ['label' => 'starter', 'default_value' => 'Electric'],
+            ['label' => 'cilindrada', 'type' => 'text', 'default_value' => '150cc', 'options' => null],
+            ['label' => 'arranque', 'type' => 'select', 'default_value' => 'Eléctrico', 'options' => ['Eléctrico', 'A patada', 'Ambos']],
         ];
         foreach ($motorcycleTemplates as $tpl) {
             VehicleTypeTemplate::updateOrCreate(
                 ['vehicle_type_id' => $motorcycleType->id, 'label' => $tpl['label']],
-                ['default_value' => $tpl['default_value']]
+                [
+                    'type' => $tpl['type'],
+                    'options' => $tpl['options'],
+                    'default_value' => $tpl['default_value']
+                ]
             );
         }
 
@@ -197,18 +212,19 @@ class DatabaseSeeder extends Seeder
                 'cover_image' => 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&q=80&w=800',
                 'engine' => '2.0L Dynamic Force',
                 'suspension' => 'Independent MacPherson',
-                'fuel_type' => 'Gasoline',
+                'fuel_type' => 'Nafta',
                 'mileage' => 15000,
                 'description' => 'Excelente estado, único dueño, services oficiales.',
                 'status' => 'available',
+                'cost_price' => 20000.00,
             ]
         );
 
         // Details for Corolla
         $corollaDetails = [
-            'doors' => '4',
-            'transmission' => 'Automatic CVT',
-            'air_conditioning' => 'Yes',
+            'puertas' => '4',
+            'transmision' => 'Automático',
+            'aire_acondicionado' => 'Sí',
         ];
         foreach ($corollaDetails as $lbl => $val) {
             VehicleDetail::updateOrCreate(
@@ -237,17 +253,18 @@ class DatabaseSeeder extends Seeder
                 'cover_image' => 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=800',
                 'engine' => '249cc BlueFlex',
                 'suspension' => 'Telescopic Fork',
-                'fuel_type' => 'Gasoline',
+                'fuel_type' => 'Nafta',
                 'mileage' => 2000,
                 'description' => 'Moto ideal para uso diario, consumo bajísimo.',
                 'status' => 'available',
+                'cost_price' => 3500.00,
             ]
         );
 
         // Details for FZ25
         $fz25Details = [
-            'cylinder_capacity' => '249cc',
-            'starter' => 'Electric',
+            'cilindrada' => '249cc',
+            'arranque' => 'Eléctrico',
         ];
         foreach ($fz25Details as $lbl => $val) {
             VehicleDetail::updateOrCreate(
@@ -280,14 +297,15 @@ class DatabaseSeeder extends Seeder
                 'mileage' => 45000,
                 'description' => 'Camioneta 4x4 lista para trabajar y viajar.',
                 'status' => 'available',
+                'cost_price' => 29000.00,
             ]
         );
 
         // Details for Ranger
         $rangerDetails = [
-            'transmission' => 'Automatic',
-            'traction' => '4x4',
-            'air_conditioning' => 'Yes',
+            'transmision' => 'Automático',
+            'traccion' => '4x4',
+            'aire_acondicionado' => 'Sí',
         ];
         foreach ($rangerDetails as $lbl => $val) {
             VehicleDetail::updateOrCreate(

@@ -147,7 +147,7 @@ class StoreController extends Controller
             }
         }
 
-        return redirect()->route('settings.store.edit', ['store_id' => $store->id])->with([
+        return redirect()->route('store.settings.edit', ['store_id' => $store->id])->with([
             'status' => 'success',
             'message' => 'Los datos del concesionario han sido actualizados con éxito.',
         ]);

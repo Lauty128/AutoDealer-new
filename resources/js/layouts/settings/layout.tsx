@@ -2,38 +2,39 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Perfil',
-        url: '/settings/profile',
-        icon: null,
-    },
-    {
-        title: 'Contraseña',
-        url: '/settings/password',
-        icon: null,
-    },
-    {
-        title: 'Apariencia',
-        url: '/settings/appearance',
-        icon: null,
-    },
-    {
-        title: 'Concesionario',
-        url: '/settings/store',
-        icon: null,
-    },
-];
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
     const currentPath = window.location.pathname;
+    const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
+
+    const isSuperAdmin = user.is_superadmin === true || user.is_superadmin === 1;
+
+    // Check if user is owner/manager in any store
+    const stores = (user.stores as any[]) || [];
+    const isOwnerOrManager = stores.some(s => s.pivot?.role === 'owner' || s.pivot?.role === 'manager');
+
+    // Dynamically build navigation tabs
+    const sidebarNavItems: NavItem[] = [
+        {
+            title: 'Perfil',
+            url: '/settings/profile',
+        },
+        {
+            title: 'Contraseña',
+            url: '/settings/password',
+        },
+        {
+            title: 'Apariencia',
+            url: '/settings/appearance',
+        },
+    ];
 
     return (
         <div className="px-4 py-6">
-            <Heading title="Configuración" description="Administra la configuración de tu perfil y cuenta" />
+            <Heading title="Configuración" description="Administra la configuración de tu perfil, concesionarios y parámetros del sistema" />
 
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">

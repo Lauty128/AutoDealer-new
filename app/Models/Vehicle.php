@@ -30,6 +30,7 @@ class Vehicle extends Model
         'mileage',
         'description',
         'status',
+        'cost_price',
     ];
 
     /**

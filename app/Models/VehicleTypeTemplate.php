@@ -24,8 +24,20 @@ class VehicleTypeTemplate extends Model
      */
     protected $fillable = [
         'vehicle_type_id',
+        'store_id',
         'label',
+        'type',
+        'options',
         'default_value',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'options' => 'array',
     ];
 
     /**

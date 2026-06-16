@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::create('vehicles_types_templates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vehicle_type_id')->constrained('vehicles_types')->onDelete('cascade');
+            $table->foreignId('store_id')->nullable()->constrained('stores')->onDelete('cascade');
             $table->string('label');
+            $table->string('type')->default('text'); // text, number, select
+            $table->json('options')->nullable(); // JSON array of options for select fields
             $table->string('default_value')->nullable();
             $table->timestamps();
         });

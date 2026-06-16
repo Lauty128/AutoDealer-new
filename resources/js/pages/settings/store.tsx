@@ -87,8 +87,12 @@ interface StoreForm {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Ajustes del Concesionario',
-        href: '/settings/store',
+        title: 'Dashboard',
+        href: '/dashboard',
+    },
+    {
+        title: 'Concesionario',
+        href: '/store/settings',
     },
 ];
 
@@ -148,12 +152,12 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
     if (!activeStore) {
         return (
             <AppLayout breadcrumbs={breadcrumbs}>
-                <Head title="Ajustes del Concesionario" />
-                <SettingsLayout>
+                <Head title="AutoDealer - Concesionario" />
+                <div className="px-6 py-6 max-w-7xl mx-auto">
                     <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-4 rounded-xl text-center">
                         <p className="text-red-700 dark:text-red-400 font-medium">No tienes concesionarios asignados a tu cuenta.</p>
                     </div>
-                </SettingsLayout>
+                </div>
             </AppLayout>
         );
     }
@@ -235,7 +239,7 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
     }, [activeStore]);
 
     const handleStoreChange = (id: number) => {
-        router.get(route('settings.store.edit'), { store_id: id });
+        router.get(route('store.settings.edit'), { store_id: id });
     };
 
     // Handle File Changes and set previews
@@ -299,15 +303,15 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         // Since Laravel has issues with files on PUT/PATCH, we use POST
-        post(route('settings.store.update'));
+        post(route('store.settings.update'));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Ajustes del Concesionario" />
+            <Head title="AutoDealer - Concesionario" />
 
-            <SettingsLayout>
-                <div className="space-y-6">
+            <div className="px-6 py-6 max-w-7xl mx-auto">
+                <div className="space-y-6 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-zinc-800 pb-5">
                         <HeadingSmall 
                             title="Datos del Concesionario" 
@@ -867,7 +871,7 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
                         </div>
                     </form>
                 </div>
-            </SettingsLayout>
+            </div>
         </AppLayout>
     );
 }

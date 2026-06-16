@@ -3,9 +3,11 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { 
     Search, X, MapPin, Phone, Mail, Clock, Calendar, Gauge, Fuel, 
-    Layers, Landmark, Award, ShieldAlert 
+    Landmark, ShieldAlert, Share2, Pencil
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 
 // Interfaces matching the backend models
 interface StoreService {
@@ -35,6 +37,9 @@ interface Store {
     presentation: string;
     working_hours: Record<string, string> | null;
     services: StoreService[];
+    pivot?: {
+        role: string;
+    };
 }
 
 interface VehicleDetail {
@@ -63,6 +68,7 @@ interface Vehicle {
     mileage: number;
     description: string;
     status: string;
+    cost_price: number | null;
     type: { id: number; name: string };
     mark: { id: number; name: string };
     details: VehicleDetail[];
@@ -74,12 +80,24 @@ interface FilterMetadata {
     name: string;
 }
 
+interface TemplateField {
+    id: number;
+    vehicle_type_id: number;
+    store_id: number | null;
+    label: string;
+    type: 'text' | 'number' | 'select';
+    options: string[] | null;
+    default_value: string | null;
+}
+
 interface DashboardProps {
     stores: Store[];
     activeStoreId: number | null;
     vehicles: Vehicle[];
     marks: FilterMetadata[];
     types: FilterMetadata[];
+    fuels: FilterMetadata[];
+    templates: TemplateField[];
     filters: {
         vehicle_type_id: string;
         vehicle_mark_id: string;
@@ -94,15 +112,28 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard({ stores, activeStoreId, vehicles, marks, types, filters }: DashboardProps) {
+export default function Dashboard({ 
+    stores, 
+    activeStoreId, 
+    vehicles, 
+    marks, 
+    types, 
+    fuels,
+    templates,
+    filters 
+}: DashboardProps) {
     const activeStore = stores.find(s => s.id === activeStoreId);
+    
+    // User Role check in active store
+    const storeRole = activeStore?.pivot?.role || 'employee';
+    const isEmployee = storeRole === 'employee' || storeRole === 'editor';
 
     // Filter states
     const [search, setSearch] = useState(filters.search || '');
     const [typeId, setTypeId] = useState(filters.vehicle_type_id || '');
     const [markId, setMarkId] = useState(filters.vehicle_mark_id || '');
 
-    // Synchronize filters when props change
+    // Sync filters on prop changes
     useEffect(() => {
         setSearch(filters.search || '');
         setTypeId(filters.vehicle_type_id || '');
@@ -123,10 +154,7 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
     };
 
     const handleStoreChange = (storeId: number) => {
-        // Reset dynamic filters when changing store
-        router.get(route('dashboard'), {
-            store_id: storeId,
-        });
+        router.get(route('dashboard'), { store_id: storeId });
     };
 
     const handleSearchSubmit = (e: React.FormEvent) => {
@@ -138,9 +166,7 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
         setSearch('');
         setTypeId('');
         setMarkId('');
-        router.get(route('dashboard'), {
-            store_id: activeStoreId,
-        });
+        router.get(route('dashboard'), { store_id: activeStoreId });
     };
 
     const formatPrice = (price: number, currency: string) => {
@@ -156,11 +182,17 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
         return new Intl.NumberFormat('es-AR').format(mileage) + ' km';
     };
 
+    const formatLabel = (lbl: string) => {
+        return lbl
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase());
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="AutoDealer - Dashboard" />
+            <Head title="AutoDealer - Stock" />
 
-            {/* Custom CSS Injector for the active store */}
+            {/* Inject Custom CSS for dynamic dealership colors */}
             {activeStore && activeStore.custom_css && (
                 <style dangerouslySetInnerHTML={{ __html: activeStore.custom_css }} />
             )}
@@ -180,15 +212,30 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                 }}
                             />
                         ) : (
-                            <div className="bg-brand/10 text-brand font-bold h-10 w-10 rounded-lg flex items-center justify-center border border-brand/20">
+                            <div className="bg-indigo-500/10 text-indigo-500 font-bold h-10 w-10 rounded-lg flex items-center justify-center border border-indigo-500/20">
                                 AD
                             </div>
                         )}
                         <div>
-                            <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-zinc-100">
-                                {activeStore ? activeStore.name : 'AutoDealer'}
-                            </h2>
-                            <p className="text-xs text-slate-500 dark:text-zinc-400">Panel de Control de Stock</p>
+                            <div className="flex items-center gap-1.5">
+                                <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+                                    {activeStore ? activeStore.name : 'AutoDealer'}
+                                </h2>
+                                {activeStore && (
+                                    <a 
+                                        href={route('public.catalog', activeStore.slug)} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        title="Ver Catálogo Digital Público"
+                                        className="text-slate-400 hover:text-brand transition-colors p-1"
+                                    >
+                                        <Share2 className="h-4 w-4" />
+                                    </a>
+                                )}
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-zinc-400">
+                                Rol: <span className="capitalize font-semibold text-brand">{storeRole}</span>
+                            </p>
                         </div>
                     </div>
 
@@ -212,7 +259,6 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                 </div>
 
                 {stores.length === 0 ? (
-                    /* Empty state if user has no stores associated */
                     <div className="flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-12 rounded-2xl text-center">
                         <ShieldAlert className="h-12 w-12 text-slate-400 mb-4" />
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-zinc-200">No tienes concesionarios asignados</h3>
@@ -238,7 +284,7 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
                                     <div className="absolute bottom-6 left-6 right-6 text-white flex flex-col md:flex-row md:items-end justify-between gap-4">
                                         <div>
-                                            <span className="bg-brand text-slate-950 text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full">
+                                            <span className="bg-indigo-600 text-white text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full shadow-sm">
                                                 Concesionario Oficial
                                             </span>
                                             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-1">
@@ -255,7 +301,6 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                 </div>
 
                                 <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    {/* Store Details Box */}
                                     <div className="lg:col-span-2 space-y-4">
                                         <div>
                                             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">Presentación</h3>
@@ -282,7 +327,6 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                         )}
                                     </div>
 
-                                    {/* Store Contact & Working Hours */}
                                     <div className="bg-slate-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-slate-200/60 dark:border-zinc-800 space-y-4 text-sm">
                                         <h3 className="font-bold text-slate-800 dark:text-zinc-200 border-b border-slate-200 dark:border-zinc-800 pb-2 flex items-center gap-1.5">
                                             Información de Contacto
@@ -321,17 +365,16 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                 </div>
                             </div>
 
-                            {/* Filters Bar */}
+                            {/* Filters & Actions Bar */}
                             <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-4">
                                 <form onSubmit={handleSearchSubmit} className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    {/* Keyword Search */}
                                     <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="search" className="text-xs font-semibold uppercase tracking-wider text-slate-400">Buscar por Modelo</label>
+                                        <Label htmlFor="search" className="text-xs font-bold uppercase tracking-wider text-slate-400">Buscar por Modelo</Label>
                                         <div className="relative">
                                             <input
                                                 id="search"
                                                 type="text"
-                                                placeholder="Ej: Corolla..."
+                                                placeholder="Ej: Corolla, Ranger..."
                                                 value={search}
                                                 onChange={(e) => setSearch(e.target.value)}
                                                 className="bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full pl-9 pr-2.5 py-2"
@@ -340,9 +383,8 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                         </div>
                                     </div>
 
-                                    {/* Brand (Mark) Filter */}
                                     <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="brand-filter" className="text-xs font-semibold uppercase tracking-wider text-slate-400">Marca</label>
+                                        <Label htmlFor="brand-filter" className="text-xs font-bold uppercase tracking-wider text-slate-400">Marca</Label>
                                         <select
                                             id="brand-filter"
                                             value={markId}
@@ -361,9 +403,8 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                         </select>
                                     </div>
 
-                                    {/* Type Filter */}
                                     <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="type-filter" className="text-xs font-semibold uppercase tracking-wider text-slate-400">Tipo de Vehículo</label>
+                                        <Label htmlFor="type-filter" className="text-xs font-bold uppercase tracking-wider text-slate-400">Tipo de Vehículo</Label>
                                         <select
                                             id="type-filter"
                                             value={typeId}
@@ -384,21 +425,22 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                 </form>
 
                                 <div className="flex gap-2 w-full md:w-auto">
-                                    <button
+                                    <Button
                                         onClick={handleSearchSubmit}
-                                        className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex-1 md:flex-none"
+                                        className="bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-100 dark:text-slate-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex-1 md:flex-none"
                                     >
                                         Filtrar
-                                    </button>
+                                    </Button>
                                     {(search || typeId || markId) && (
-                                        <button
+                                        <Button
                                             onClick={handleClearFilters}
-                                            className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 text-sm font-semibold px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                            variant="ghost"
+                                            className="border border-slate-200 text-slate-700 dark:text-zinc-300 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-sm px-3 py-2 rounded-lg flex items-center justify-center gap-1"
                                             title="Limpiar filtros"
                                         >
                                             <X className="h-4 w-4" />
-                                            <span className="inline md:hidden lg:inline">Limpiar</span>
-                                        </button>
+                                            <span>Limpiar</span>
+                                        </Button>
                                     )}
                                 </div>
                             </div>
@@ -406,23 +448,29 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                             {/* Vehicles Listing Section */}
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100">
+                                    <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-1.5">
                                         Vehículos en Stock ({vehicles.length})
                                     </h2>
+                                    <Button
+                                        onClick={() => router.get(route('vehicles.manage'))}
+                                        className="bg-brand hover:bg-brand-hover text-slate-950 font-bold text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                        Gestionar Inventario
+                                    </Button>
                                 </div>
 
                                 {vehicles.length === 0 ? (
-                                    /* Empty vehicles list */
                                     <div className="flex flex-col items-center justify-center border border-dashed border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-12 rounded-2xl text-center shadow-sm">
                                         <ShieldAlert className="h-10 w-10 text-slate-300 mb-2" />
                                         <h4 className="text-sm font-bold text-slate-700 dark:text-zinc-200">No se encontraron vehículos</h4>
                                         <p className="text-xs text-slate-400 dark:text-zinc-400 mt-1">
-                                            Intenta cambiar los filtros o la búsqueda para encontrar lo que buscas.
+                                            Intenta cambiar los filtros o ingresa al menú de Vehículos para agregar stock.
                                         </p>
                                         {(search || typeId || markId) && (
                                             <button
                                                 onClick={handleClearFilters}
-                                                className="text-xs font-semibold text-brand hover:text-brand-hover underline mt-3"
+                                                className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 underline mt-3"
                                             >
                                                 Limpiar todos los filtros
                                             </button>
@@ -436,7 +484,7 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                                 key={vehicle.id} 
                                                 className="bg-white dark:bg-zinc-900 rounded-xl overflow-hidden border border-slate-200/85 dark:border-zinc-800 hover:border-slate-300/90 dark:hover:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group"
                                             >
-                                                {/* Cover Image */}
+                                                {/* Cover Image & Status Badge */}
                                                 <div className="aspect-video relative overflow-hidden bg-slate-100 dark:bg-zinc-800">
                                                     {vehicle.cover_image ? (
                                                         <img 
@@ -451,31 +499,44 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                                     )}
                                                     
                                                     {/* Status Badge */}
-                                                    <span className={`absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                                        vehicle.status === 'available' ? 'bg-green-500/90 text-white' : 
-                                                        vehicle.status === 'reserved' ? 'bg-yellow-500/90 text-white' : 
-                                                        'bg-red-500/90 text-white'
-                                                    }`}>
-                                                        {vehicle.status === 'available' ? 'Disponible' : 
-                                                         vehicle.status === 'reserved' ? 'Reservado' : 'Vendido'}
-                                                    </span>
+                                                    <div className="absolute top-3 right-3">
+                                                        <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full text-white shadow-sm ${
+                                                            vehicle.status === 'available' ? 'bg-green-600/90' : 
+                                                            vehicle.status === 'reserved' ? 'bg-amber-500/90' : 
+                                                            'bg-red-600/90'
+                                                        }`}>
+                                                            {vehicle.status === 'available' ? 'Disponible' : 
+                                                             vehicle.status === 'reserved' ? 'Reservado' : 
+                                                             'Vendido'}
+                                                        </span>
+                                                    </div>
                                                 </div>
 
                                                 {/* Card Body */}
                                                 <div className="p-4 flex-1 flex flex-col justify-between gap-4">
                                                     <div>
                                                         <div className="flex items-center justify-between gap-2">
-                                                            <span className="text-xs font-bold text-brand uppercase tracking-wide">
+                                                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">
                                                                 {vehicle.mark.name}
                                                             </span>
                                                             <span className="bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 text-[10px] font-bold px-2 py-0.5 rounded">
                                                                 {vehicle.type.name}
                                                             </span>
                                                         </div>
-                                                        <h3 className="text-base font-bold text-slate-800 dark:text-zinc-100 mt-1 line-clamp-1">
+                                                        
+                                                        <h3 className="text-base font-bold text-slate-800 dark:text-zinc-100 line-clamp-1 mt-1">
                                                             {vehicle.model}
                                                         </h3>
-                                                        <p className="text-xs text-slate-400 dark:text-zinc-500 mt-0.5">Patente: {vehicle.plate || 'N/A'}</p>
+                                                        
+                                                        <p className="text-[10px] text-slate-400 mt-0.5">Patente: <span className="font-mono uppercase">{vehicle.plate || 'N/A'}</span></p>
+
+                                                        {/* Cost Price - Hidden from normal employees */}
+                                                        {!isEmployee && vehicle.cost_price !== null && (
+                                                            <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-1.5 flex items-center gap-1">
+                                                                <Landmark className="h-3.5 w-3.5" />
+                                                                Costo: {formatPrice(vehicle.cost_price, vehicle.currency)}
+                                                            </p>
+                                                        )}
 
                                                         {/* Specs Badges */}
                                                         <div className="grid grid-cols-3 gap-2 mt-3 text-slate-500 dark:text-zinc-400 text-xs border-y border-slate-100 dark:border-zinc-800 py-2">
@@ -501,7 +562,7 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
                                                                         key={detail.id} 
                                                                         className="bg-slate-50 dark:bg-zinc-800/50 text-slate-500 dark:text-zinc-400 text-[10px] font-medium px-2 py-0.5 rounded border border-slate-100 dark:border-zinc-800"
                                                                     >
-                                                                        <span className="capitalize">{detail.label}</span>: {detail.value}
+                                                                        <span className="capitalize">{formatLabel(detail.label)}</span>: {detail.value}
                                                                     </span>
                                                                 ))}
                                                                 {vehicle.details.length > 3 && (
@@ -515,7 +576,7 @@ export default function Dashboard({ stores, activeStoreId, vehicles, marks, type
 
                                                     {/* Price Tag */}
                                                     <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
-                                                        <span className="text-xs text-slate-400 dark:text-zinc-500 font-medium">Precio</span>
+                                                        <span className="text-xs text-slate-400 dark:text-zinc-500 font-medium">Precio de Venta</span>
                                                         <span className="text-lg font-black text-slate-900 dark:text-zinc-100">
                                                             {formatPrice(vehicle.price, vehicle.currency)}
                                                         </span>

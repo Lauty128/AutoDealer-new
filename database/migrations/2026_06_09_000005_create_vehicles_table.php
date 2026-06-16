@@ -28,6 +28,7 @@ return new class extends Migration
             $table->integer('mileage')->nullable(); // kilometraje
             $table->text('description')->nullable();
             $table->string('status')->default('available');
+            $table->decimal('cost_price', 15, 2)->nullable(); // acquisition cost (restricted view)
             $table->timestamps();
         });
     }
