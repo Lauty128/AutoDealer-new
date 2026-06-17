@@ -12,6 +12,8 @@ use App\Models\VehicleImage;
 use App\Models\VehicleMark;
 use App\Models\VehicleType;
 use App\Models\VehicleTypeTemplate;
+use App\Models\Plan;
+use App\Models\Subscription;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -22,6 +24,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 0. Create Default Plans
+        $planPremium = Plan::updateOrCreate(
+            ['slug' => 'premium'],
+            [
+                'name' => 'Plan Premium',
+                'description' => 'Acceso ilimitado a plantillas, carga de vehículos e historial de facturación simplificado.',
+                'price' => 4500.00,
+                'currency' => 'ARS',
+                'billing_period' => 'monthly',
+                'trial_days' => 90, // 3 months trial
+                'is_active' => true,
+            ]
+        );
+
         // 1. Create Default User
         $user = User::updateOrCreate(
             ['email' => 'lautarosilverii@gmail.com'],
@@ -115,6 +131,25 @@ class DatabaseSeeder extends Seeder
             $storeHq->id => ['role' => 'owner'],
             $storeNorte->id => ['role' => 'manager'],
         ]);
+
+        // Create initial trial subscriptions for HQ and Norte
+        Subscription::updateOrCreate(
+            ['store_id' => $storeHq->id],
+            [
+                'plan_id' => $planPremium->id,
+                'status' => 'trialing',
+                'trial_ends_at' => now()->addDays($planPremium->trial_days),
+            ]
+        );
+
+        Subscription::updateOrCreate(
+            ['store_id' => $storeNorte->id],
+            [
+                'plan_id' => $planPremium->id,
+                'status' => 'trialing',
+                'trial_ends_at' => now()->addDays($planPremium->trial_days),
+            ]
+        );
 
         // 3. Create Vehicle Types
         $carType = VehicleType::updateOrCreate(

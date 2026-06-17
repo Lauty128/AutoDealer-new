@@ -9,7 +9,9 @@ use App\Http\Controllers\Admin\AdminTemplateController;
 use App\Http\Controllers\Admin\AdminTypeController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminVehicleController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -24,34 +26,50 @@ Route::get('/', function () {
 })->name('home');
 
 // Public Digital Catalog Showroom
-Route::get('concesionario/{store}/{vehicle?}', [PublicCatalogController::class, 'show'])->name('public.catalog');
+Route::get('concesionario/{store}/{vehicle?}', [PublicCatalogController::class, 'show'])
+    ->middleware('subscribed')
+    ->name('public.catalog');
+
+// MercadoPago Webhook Endpoint
+Route::post('webhooks/mercadopago', [MercadoPagoWebhookController::class, 'handle'])
+    ->name('webhooks.mercadopago');
 
 // Authenticated routes
 Route::middleware(['auth', 'impersonate_superadmin'])->prefix('dashboard')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Vehicles Manage Page (interactive CRUD table/list)
-    Route::get('vehicles/manage', [DashboardController::class, 'manage'])->name('vehicles.manage');
+    // Billing & Subscription portal (Exempt from subscribed restrictions)
+    Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
+    Route::post('billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
+    Route::get('billing/success', [BillingController::class, 'success'])->name('billing.success');
+    Route::get('billing/pending', [BillingController::class, 'pending'])->name('billing.pending');
+    Route::get('billing/failure', [BillingController::class, 'failure'])->name('billing.failure');
 
-    // Standalone vehicle form screens & print
-    Route::get('vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
-    Route::get('vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
-    Route::get('vehicles/{vehicle}/print', [VehicleController::class, 'print'])->name('vehicles.print');
+    // Active workspace routes requiring active subscription
+    Route::middleware(['subscribed'])->group(function () {
+        // Vehicles Manage Page (interactive CRUD table/list)
+        Route::get('vehicles/manage', [DashboardController::class, 'manage'])->name('vehicles.manage');
 
-    // Vehicles CRUD Actions
-    Route::post('vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
-    Route::post('vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
-    Route::delete('vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
-    Route::post('vehicles/{vehicle}/status', [VehicleController::class, 'updateStatus'])->name('vehicles.updateStatus');
+        // Standalone vehicle form screens & print
+        Route::get('vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
+        Route::get('vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
+        Route::get('vehicles/{vehicle}/print', [VehicleController::class, 'print'])->name('vehicles.print');
 
-    // Direct Store Settings Page
-    Route::get('store/settings', [StoreController::class, 'edit'])->name('store.settings.edit');
-    Route::post('store/settings', [StoreController::class, 'update'])->name('store.settings.update');
+        // Vehicles CRUD Actions
+        Route::post('vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
+        Route::post('vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
+        Route::delete('vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
+        Route::post('vehicles/{vehicle}/status', [VehicleController::class, 'updateStatus'])->name('vehicles.updateStatus');
 
-    // Direct Templates Settings Page
-    Route::get('templates/settings', [TemplateController::class, 'edit'])->name('templates.settings.edit');
-    Route::post('templates/settings', [TemplateController::class, 'update'])->name('templates.settings.update');
-    Route::post('templates/settings/reset', [TemplateController::class, 'reset'])->name('templates.settings.reset');
+        // Direct Store Settings Page
+        Route::get('store/settings', [StoreController::class, 'edit'])->name('store.settings.edit');
+        Route::post('store/settings', [StoreController::class, 'update'])->name('store.settings.update');
+
+        // Direct Templates Settings Page
+        Route::get('templates/settings', [TemplateController::class, 'edit'])->name('templates.settings.edit');
+        Route::post('templates/settings', [TemplateController::class, 'update'])->name('templates.settings.update');
+        Route::post('templates/settings/reset', [TemplateController::class, 'reset'])->name('templates.settings.reset');
+    });
 });
 
 // Administrative standalone panel routes

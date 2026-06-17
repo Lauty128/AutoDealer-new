@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Plan;
 use App\Models\Store;
+use App\Models\Subscription;
 use App\Models\Vehicle;
 use App\Models\VehicleMark;
 use App\Models\VehicleType;
@@ -9,11 +11,27 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('public catalog lists vehicles and allows filter options without authentication', function () {
+    $plan = Plan::create([
+        'name' => 'Plan Premium',
+        'slug' => 'premium',
+        'price' => 4500,
+        'currency' => 'ARS',
+        'billing_period' => 'monthly',
+        'trial_days' => 90,
+    ]);
+
     $store = Store::create([
         'name' => 'Auto Showroom Norte',
         'slug' => 'norte',
         'phone' => '123456789',
         'presentation' => 'El mejor concesionario de la zona norte.',
+    ]);
+
+    Subscription::create([
+        'store_id' => $store->id,
+        'plan_id' => $plan->id,
+        'status' => 'trialing',
+        'trial_ends_at' => now()->addDays(90),
     ]);
 
     $type = VehicleType::create(['name' => 'SUV', 'slug' => 'suv']);
@@ -68,10 +86,26 @@ test('public catalog lists vehicles and allows filter options without authentica
 });
 
 test('public vehicle details displays specific vehicle information and SEO tags', function () {
+    $plan = Plan::create([
+        'name' => 'Plan Premium',
+        'slug' => 'premium',
+        'price' => 4500,
+        'currency' => 'ARS',
+        'billing_period' => 'monthly',
+        'trial_days' => 90,
+    ]);
+
     $store = Store::create([
         'name' => 'Auto Showroom Norte',
         'slug' => 'norte',
         'phone' => '123456789',
+    ]);
+
+    Subscription::create([
+        'store_id' => $store->id,
+        'plan_id' => $plan->id,
+        'status' => 'trialing',
+        'trial_ends_at' => now()->addDays(90),
     ]);
 
     $type = VehicleType::create(['name' => 'SUV', 'slug' => 'suv']);
@@ -110,12 +144,30 @@ test('public vehicle details displays specific vehicle information and SEO tags'
 });
 
 test('returns 404 for non-existent store or vehicle', function () {
+    // Non-existent store gives 404
     $this->get('/concesionario/non-existent-store')->assertStatus(404);
+
+    $plan = Plan::create([
+        'name' => 'Plan Premium',
+        'slug' => 'premium',
+        'price' => 4500,
+        'currency' => 'ARS',
+        'billing_period' => 'monthly',
+        'trial_days' => 90,
+    ]);
 
     $store = Store::create([
         'name' => 'Auto Showroom Norte',
         'slug' => 'norte',
     ]);
 
+    Subscription::create([
+        'store_id' => $store->id,
+        'plan_id' => $plan->id,
+        'status' => 'trialing',
+        'trial_ends_at' => now()->addDays(90),
+    ]);
+
+    // Valid store but non-existent vehicle gives 404
     $this->get('/concesionario/norte/9999')->assertStatus(404);
 });

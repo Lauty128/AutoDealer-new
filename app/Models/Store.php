@@ -71,4 +71,20 @@ class Store extends Model
     {
         return $this->hasMany(Vehicle::class);
     }
+
+    /**
+     * Get all subscriptions for this store.
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get the current active/latest subscription for this store.
+     */
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)->latestOfMany();
+    }
 }

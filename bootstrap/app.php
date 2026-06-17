@@ -26,7 +26,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'superadmin' => EnsureSuperAdmin::class,
             'impersonate_superadmin' => EnsureImpersonatingIfSuperAdmin::class,
+            'subscribed' => \App\Http\Middleware\CheckSubscription::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/mercadopago',
+        ]);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

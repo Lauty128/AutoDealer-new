@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Store;
+use App\Models\Plan;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -79,7 +81,18 @@ class AdminStoreController extends Controller
             $validated['banner'] = Storage::url($bannerPath);
         }
 
-        Store::create(collect($validated)->except(['logo_file', 'banner_file'])->toArray());
+        $store = Store::create(collect($validated)->except(['logo_file', 'banner_file'])->toArray());
+
+        // Create default trialing subscription
+        $defaultPlan = Plan::where('slug', 'premium')->first();
+        if ($defaultPlan) {
+            Subscription::create([
+                'store_id' => $store->id,
+                'plan_id' => $defaultPlan->id,
+                'status' => 'trialing',
+                'trial_ends_at' => now()->addDays($defaultPlan->trial_days),
+            ]);
+        }
 
         return redirect()->route('admin.stores.index')->with([
             'status' => 'success',

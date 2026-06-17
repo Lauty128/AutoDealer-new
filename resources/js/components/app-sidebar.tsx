@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Car, Landmark, Layers, ShieldAlert, Globe } from 'lucide-react';
+import { LayoutGrid, Car, Landmark, Layers, ShieldAlert, Globe, CreditCard } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const footerNavItems: NavItem[] = [];
@@ -54,6 +54,11 @@ export function AppSidebar() {
             title: 'Plantillas',
             url: '/dashboard/templates/settings',
             icon: Layers,
+        });
+        mainNavItems.push({
+            title: 'Suscripción',
+            url: '/dashboard/billing',
+            icon: CreditCard,
         });
     }
 
