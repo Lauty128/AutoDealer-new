@@ -36,8 +36,7 @@ test('superadmin can access dashboard', function () {
 
     $response = $this->actingAs($user)->get('/admin/dashboard');
 
-    $response->assertStatus(250) // Inertia returns 200 or 250 in tests depending on headers, but standard Laravel assertStatus(200) works
-        ->assertStatus(200);
+    $response->assertStatus(200);
 });
 
 test('superadmin can authenticate using admin login screen', function () {

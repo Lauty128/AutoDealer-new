@@ -15,10 +15,10 @@ class PublicCatalogController extends Controller
     /**
      * Display the public digital catalog of a store.
      */
-    public function show(Request $request, $slug)
+    public function show(Request $request, $storeId, $vehicleId = null)
     {
-        // Find store by slug
-        $store = Store::where('slug', $slug)->with('services')->firstOrFail();
+        // Find store by ID or slug
+        $store = Store::where('id', $storeId)->orWhere('slug', $storeId)->with('services')->firstOrFail();
 
         // Build vehicle query
         $query = Vehicle::with(['type', 'mark', 'details', 'images'])
@@ -38,7 +38,7 @@ class PublicCatalogController extends Controller
         }
 
         // We show all stock, but keep the available ones at the top
-        $vehicles = $query->orderByRaw("FIELD(status, 'available', 'reserved', 'sold')")
+        $vehicles = $query->orderByRaw("CASE WHEN status = 'available' THEN 1 WHEN status = 'reserved' THEN 2 WHEN status = 'sold' THEN 3 ELSE 4 END")
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -58,17 +58,25 @@ class PublicCatalogController extends Controller
 
         $templates = $storeTemplates->concat($systemTemplates);
 
-        return Inertia::render('catalog', [
+        // If a specific vehicle ID is provided in the route, we render the details view
+        if ($vehicleId) {
+            $vehicle = Vehicle::with(['type', 'mark', 'details', 'images'])
+                ->where('store_id', $store->id)
+                ->findOrFail($vehicleId);
+
+            return view('public.vehicle', [
+                'store' => $store,
+                'vehicle' => $vehicle,
+                'templates' => $templates,
+            ]);
+        }
+
+        return view('public.catalog', [
             'store' => $store,
             'vehicles' => $vehicles,
             'marks' => $marks,
             'types' => $types,
             'templates' => $templates,
-            'filters' => [
-                'vehicle_type_id' => $request->input('vehicle_type_id', ''),
-                'vehicle_mark_id' => $request->input('vehicle_mark_id', ''),
-                'search' => $request->input('search', ''),
-            ],
         ]);
     }
 }

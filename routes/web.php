@@ -24,7 +24,7 @@ Route::get('/', function () {
 })->name('home');
 
 // Public Digital Catalog Showroom
-Route::get('dashboard/catalog/{slug}', [PublicCatalogController::class, 'show'])->name('public.catalog');
+Route::get('concesionario/{store}/{vehicle?}', [PublicCatalogController::class, 'show'])->name('public.catalog');
 
 // Authenticated routes
 Route::middleware(['auth', 'impersonate_superadmin'])->prefix('dashboard')->group(function () {
@@ -32,6 +32,11 @@ Route::middleware(['auth', 'impersonate_superadmin'])->prefix('dashboard')->grou
 
     // Vehicles Manage Page (interactive CRUD table/list)
     Route::get('vehicles/manage', [DashboardController::class, 'manage'])->name('vehicles.manage');
+
+    // Standalone vehicle form screens & print
+    Route::get('vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
+    Route::get('vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
+    Route::get('vehicles/{vehicle}/print', [VehicleController::class, 'print'])->name('vehicles.print');
 
     // Vehicles CRUD Actions
     Route::post('vehicles', [VehicleController::class, 'store'])->name('vehicles.store');

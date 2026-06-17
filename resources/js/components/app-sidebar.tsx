@@ -4,13 +4,13 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Car, Landmark, Layers, ShieldAlert } from 'lucide-react';
+import { LayoutGrid, Car, Landmark, Layers, ShieldAlert, Globe } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, activeStore } = usePage<SharedData>().props as any;
     const user = auth.user;
     const isSuperAdmin = user.is_superadmin === true || user.is_superadmin === 1;
 
@@ -33,6 +33,14 @@ export function AppSidebar() {
             title: 'Vehículos',
             url: '/dashboard/vehicles/manage',
             icon: Car,
+        });
+    }
+
+    if (activeStore) {
+        mainNavItems.push({
+            title: 'Catálogo Público',
+            url: `/concesionario/${activeStore.id}`,
+            icon: Globe,
         });
     }
 

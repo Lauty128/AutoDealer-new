@@ -38,13 +38,20 @@ class StoreController extends Controller
             $activeStore = $stores->first();
         }
 
+        // Role check: only owner or manager can access settings
+        if ($activeStore->pivot->role !== 'owner' && $activeStore->pivot->role !== 'manager') {
+            abort(403, 'No tienes permisos para configurar este concesionario.');
+        }
+
         return Inertia::render('settings/store', [
-            'stores' => $stores->map(function ($store) {
+            'stores' => $stores->filter(function ($store) {
+                return $store->pivot->role === 'owner' || $store->pivot->role === 'manager';
+            })->map(function ($store) {
                 return [
                     'id' => $store->id,
                     'name' => $store->name,
                 ];
-            }),
+            })->values(),
             'activeStore' => $activeStore,
             'status' => $request->session()->get('status'),
             'message' => $request->session()->get('message'),
@@ -66,6 +73,14 @@ class StoreController extends Controller
             return back()->with([
                 'status' => 'error',
                 'message' => 'No estás autorizado para editar este concesionario.',
+            ]);
+        }
+
+        // Role check: only owner or manager can update settings
+        if ($store->pivot->role !== 'owner' && $store->pivot->role !== 'manager') {
+            return back()->with([
+                'status' => 'error',
+                'message' => 'No tienes permisos suficientes para configurar este concesionario.',
             ]);
         }
 

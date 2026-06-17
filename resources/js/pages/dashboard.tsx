@@ -3,11 +3,12 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { 
     Search, X, MapPin, Phone, Mail, Clock, Calendar, Gauge, Fuel, 
-    Landmark, ShieldAlert, Share2, Pencil
+    Landmark, ShieldAlert, Share2, Pencil, Car, CheckCircle
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { SharePreviewDialog } from '@/components/vehicles/share-preview-dialog';
 
 // Interfaces matching the backend models
 interface StoreService {
@@ -136,6 +137,15 @@ export default function Dashboard({
     const [typeId, setTypeId] = useState(filters.vehicle_type_id || '');
     const [markId, setMarkId] = useState(filters.vehicle_mark_id || '');
 
+    // Share & Preview Dialog State
+    const [selectedShareVehicle, setSelectedShareVehicle] = useState<Vehicle | null>(null);
+    const [isShareOpen, setIsShareOpen] = useState(false);
+
+    const handleOpenSharePreview = (vehicle: Vehicle) => {
+        setSelectedShareVehicle(vehicle);
+        setIsShareOpen(true);
+    };
+
     // Sync filters on prop changes
     useEffect(() => {
         setSearch(filters.search || '');
@@ -226,7 +236,7 @@ export default function Dashboard({
                                 </h2>
                                 {activeStore && (
                                     <a 
-                                        href={route('public.catalog', activeStore.slug)} 
+                                        href={route('public.catalog', activeStore.id)} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
                                         title="Ver Catálogo Digital Público"
@@ -373,6 +383,71 @@ export default function Dashboard({
                                                 </div>
                                             )}
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* KPI Metrics Cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Total Stock</p>
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-zinc-100 mt-1">{vehicles.length}</h3>
+                                    </div>
+                                    <div className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 p-3 rounded-xl">
+                                        <Car className="h-6 w-6" />
+                                    </div>
+                                </div>
+
+                                <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Disponibles</p>
+                                        <h3 className="text-2xl font-black text-green-600 dark:text-green-400 mt-1">
+                                            {vehicles.filter(v => v.status === 'available').length}
+                                        </h3>
+                                    </div>
+                                    <div className="bg-green-500/10 text-green-600 dark:text-green-400 p-3 rounded-xl">
+                                        <CheckCircle className="h-6 w-6" />
+                                    </div>
+                                </div>
+
+                                <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Reservados</p>
+                                        <h3 className="text-2xl font-black text-amber-500 dark:text-amber-400 mt-1">
+                                            {vehicles.filter(v => v.status === 'reserved').length}
+                                        </h3>
+                                    </div>
+                                    <div className="bg-amber-500/10 text-amber-500 dark:text-amber-400 p-3 rounded-xl">
+                                        <Clock className="h-6 w-6" />
+                                    </div>
+                                </div>
+
+                                <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Valor Inventario</p>
+                                        <h3 className="text-lg font-black text-slate-900 dark:text-zinc-100 mt-1 leading-tight">
+                                            {(() => {
+                                                const usd = vehicles.filter(v => v.status === 'available' && v.currency === 'USD').reduce((acc, v) => acc + Number(v.price), 0);
+                                                const ars = vehicles.filter(v => v.status === 'available' && v.currency === 'ARS').reduce((acc, v) => acc + Number(v.price), 0);
+                                                
+                                                if (usd > 0 && ars > 0) {
+                                                    return (
+                                                        <div className="flex flex-col">
+                                                            <span>{formatPrice(usd, 'USD')}</span>
+                                                            <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">{formatPrice(ars, 'ARS')}</span>
+                                                        </div>
+                                                    );
+                                                } else if (ars > 0) {
+                                                    return formatPrice(ars, 'ARS');
+                                                } else {
+                                                    return formatPrice(usd, 'USD');
+                                                }
+                                            })()}
+                                        </h3>
+                                    </div>
+                                    <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-3 rounded-xl">
+                                        <Landmark className="h-6 w-6" />
                                     </div>
                                 </div>
                             </div>
@@ -586,12 +661,26 @@ export default function Dashboard({
                                                         )}
                                                     </div>
 
-                                                    {/* Price Tag */}
-                                                    <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
-                                                        <span className="text-xs text-slate-400 dark:text-zinc-500 font-medium">Precio de Venta</span>
-                                                        <span className="text-lg font-black text-slate-900 dark:text-zinc-100">
-                                                            {formatPrice(vehicle.price, vehicle.currency)}
-                                                        </span>
+                                                    {/* Price Tag & Actions */}
+                                                    <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between gap-2">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium">Precio de Venta</span>
+                                                            <span className="text-base font-black text-slate-900 dark:text-zinc-100">
+                                                                {formatPrice(vehicle.price, vehicle.currency)}
+                                                            </span>
+                                                        </div>
+                                                        <Button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleOpenSharePreview(vehicle);
+                                                            }}
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-xs h-8 border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center gap-1 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
+                                                        >
+                                                            <Share2 className="h-3.5 w-3.5" />
+                                                            <span>Ficha</span>
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -603,6 +692,13 @@ export default function Dashboard({
                     )
                 )}
             </div>
+
+            <SharePreviewDialog 
+                vehicle={selectedShareVehicle} 
+                store={activeStore} 
+                isOpen={isShareOpen} 
+                onClose={() => setIsShareOpen(false)} 
+            />
         </AppLayout>
     );
 }

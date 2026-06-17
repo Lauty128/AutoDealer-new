@@ -38,6 +38,22 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $user = $request->user();
+        $activeStore = null;
+        if ($user) {
+            // Check if user has associated stores
+            $stores = $user->stores;
+            if ($stores && $stores->isNotEmpty()) {
+                $storeId = $request->input('store_id');
+                if ($storeId) {
+                    $activeStore = $stores->firstWhere('id', (int) $storeId);
+                }
+                if (! $activeStore) {
+                    $activeStore = $stores->first();
+                }
+            }
+        }
+
         return array_merge(parent::share($request), [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -45,6 +61,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'activeStore' => $activeStore ? [
+                'id' => $activeStore->id,
+                'name' => $activeStore->name,
+                'slug' => $activeStore->slug,
+            ] : null,
         ]);
     }
 }

@@ -25,6 +25,11 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    activeStore?: {
+        id: number;
+        name: string;
+        slug: string;
+    } | null;
     [key: string]: unknown;
 }
 

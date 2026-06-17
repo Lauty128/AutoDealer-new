@@ -2,14 +2,127 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Store;
 use App\Models\Vehicle;
+use App\Models\VehicleFuel;
 use App\Models\VehicleImage;
+use App\Models\VehicleMark;
+use App\Models\VehicleType;
+use App\Models\VehicleTypeTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class VehicleController extends Controller
 {
+    /**
+     * Show form for creating a new vehicle.
+     */
+    public function create(Request $request)
+    {
+        $user = $request->user();
+        $stores = $user->stores;
+
+        if ($stores->isEmpty()) {
+            return redirect()->route('dashboard')->with([
+                'status' => 'error',
+                'message' => 'No tienes concesionarios asociados.',
+            ]);
+        }
+
+        $activeStoreId = (int) $request->input('store_id', $stores->first()->id);
+
+        if (! $stores->pluck('id')->contains($activeStoreId)) {
+            $activeStoreId = $stores->first()->id;
+        }
+
+        $marks = VehicleMark::orderBy('name')->get();
+        $types = VehicleType::orderBy('name')->get();
+        $fuels = VehicleFuel::orderBy('name')->get();
+
+        // Load templates (combining store overrides and system defaults)
+        $storeTemplates = VehicleTypeTemplate::where('store_id', $activeStoreId)->get();
+        $typesWithStoreCustom = $storeTemplates->pluck('vehicle_type_id')->unique()->toArray();
+        $systemTemplates = VehicleTypeTemplate::whereNull('store_id')
+            ->whereNotIn('vehicle_type_id', $typesWithStoreCustom)
+            ->get();
+        $templates = $storeTemplates->concat($systemTemplates);
+
+        return Inertia::render('vehicles/form', [
+            'stores' => $stores,
+            'activeStoreId' => $activeStoreId,
+            'marks' => $marks,
+            'types' => $types,
+            'fuels' => $fuels,
+            'templates' => $templates,
+            'vehicle' => null,
+        ]);
+    }
+
+    /**
+     * Show form for editing an existing vehicle.
+     */
+    public function edit(Request $request, Vehicle $vehicle)
+    {
+        $user = $request->user();
+        $stores = $user->stores;
+
+        // Verify that the user has access to this store
+        $store = $stores->firstWhere('id', $vehicle->store_id);
+        if (! $store) {
+            abort(403, 'No tienes permisos para ver este vehículo.');
+        }
+
+        $vehicle->load(['type', 'mark', 'details', 'images']);
+
+        $marks = VehicleMark::orderBy('name')->get();
+        $types = VehicleType::orderBy('name')->get();
+        $fuels = VehicleFuel::orderBy('name')->get();
+
+        // Load templates (combining store overrides and system defaults)
+        $storeTemplates = VehicleTypeTemplate::where('store_id', $vehicle->store_id)->get();
+        $typesWithStoreCustom = $storeTemplates->pluck('vehicle_type_id')->unique()->toArray();
+        $systemTemplates = VehicleTypeTemplate::whereNull('store_id')
+            ->whereNotIn('vehicle_type_id', $typesWithStoreCustom)
+            ->get();
+        $templates = $storeTemplates->concat($systemTemplates);
+
+        return Inertia::render('vehicles/form', [
+            'stores' => $stores,
+            'activeStoreId' => $vehicle->store_id,
+            'marks' => $marks,
+            'types' => $types,
+            'fuels' => $fuels,
+            'templates' => $templates,
+            'vehicle' => $vehicle,
+        ]);
+    }
+
+    /**
+     * Display print view of technical sheet.
+     */
+    public function print(Request $request, Vehicle $vehicle)
+    {
+        $user = $request->user();
+        $stores = $user->stores;
+
+        // Verify access
+        $store = $stores->firstWhere('id', $vehicle->store_id);
+        if (! $store) {
+            abort(403, 'No tienes permisos para ver este vehículo.');
+        }
+
+        $vehicle->load(['type', 'mark', 'details', 'images']);
+
+        $storeFull = Store::with('services')->find($vehicle->store_id);
+
+        return Inertia::render('vehicles/print', [
+            'vehicle' => $vehicle,
+            'store' => $storeFull,
+        ]);
+    }
+
     /**
      * Store a newly created vehicle in storage.
      */
@@ -89,7 +202,7 @@ class VehicleController extends Controller
                 }
             }
 
-            return redirect()->route('dashboard', ['store_id' => $store->id])->with([
+            return redirect()->route('vehicles.manage', ['store_id' => $store->id])->with([
                 'status' => 'success',
                 'message' => 'El vehículo ha sido agregado con éxito.',
             ]);
@@ -193,7 +306,7 @@ class VehicleController extends Controller
                 }
             }
 
-            return redirect()->route('dashboard', ['store_id' => $store->id])->with([
+            return redirect()->route('vehicles.manage', ['store_id' => $store->id])->with([
                 'status' => 'success',
                 'message' => 'El vehículo ha sido actualizado con éxito.',
             ]);
@@ -226,7 +339,7 @@ class VehicleController extends Controller
             // Delete vehicle (cascading deletes table records)
             $vehicle->delete();
 
-            return redirect()->route('dashboard', ['store_id' => $store->id])->with([
+            return redirect()->route('vehicles.manage', ['store_id' => $store->id])->with([
                 'status' => 'success',
                 'message' => 'El vehículo ha sido eliminado con éxito.',
             ]);
@@ -249,7 +362,7 @@ class VehicleController extends Controller
             'status' => $validated['status'],
         ]);
 
-        return redirect()->route('dashboard', ['store_id' => $store->id])->with([
+        return redirect()->route('vehicles.manage', ['store_id' => $store->id])->with([
             'status' => 'success',
             'message' => 'El estado del vehículo ha sido modificado con éxito.',
         ]);
