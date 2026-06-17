@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
+use App\Models\VehicleFuel;
 use App\Models\VehicleMark;
 use App\Models\VehicleType;
-use App\Models\VehicleFuel;
 use App\Models\VehicleTypeTemplate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,6 +19,7 @@ class DashboardController extends Controller
     public function index(Request $request): Response
     {
         $data = $this->getDashboardData($request);
+
         return Inertia::render('dashboard', $data);
     }
 
@@ -28,6 +29,7 @@ class DashboardController extends Controller
     public function manage(Request $request): Response
     {
         $data = $this->getDashboardData($request);
+
         return Inertia::render('vehicles/manage', $data);
     }
 
@@ -60,7 +62,7 @@ class DashboardController extends Controller
         $activeStoreId = (int) $request->input('store_id', $stores->first()->id);
 
         // Safety check: ensure user has access to this store
-        if (!$stores->pluck('id')->contains($activeStoreId)) {
+        if (! $stores->pluck('id')->contains($activeStoreId)) {
             $activeStoreId = (int) $stores->first()->id;
         }
 
@@ -71,7 +73,7 @@ class DashboardController extends Controller
 
         // Load store-specific templates (combining store overrides and system defaults)
         $storeTemplates = VehicleTypeTemplate::where('store_id', $activeStoreId)->get();
-        
+
         $typesWithStoreCustom = $storeTemplates->pluck('vehicle_type_id')->unique()->toArray();
         $systemTemplates = VehicleTypeTemplate::whereNull('store_id')
             ->whereNotIn('vehicle_type_id', $typesWithStoreCustom)
@@ -93,7 +95,7 @@ class DashboardController extends Controller
         }
 
         if ($request->has('search') && $request->input('search') !== '') {
-            $query->where('model', 'like', '%' . $request->input('search') . '%');
+            $query->where('model', 'like', '%'.$request->input('search').'%');
         }
 
         $vehicles = $query->orderBy('created_at', 'desc')->get();

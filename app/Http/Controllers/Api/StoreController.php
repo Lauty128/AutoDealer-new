@@ -14,12 +14,12 @@ class StoreController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
         // Retrieve stores with their services relation
         $stores = $user->stores()->with('services')->get();
 
         return response()->json([
-            'data' => $stores
+            'data' => $stores,
         ]);
     }
 
@@ -33,9 +33,9 @@ class StoreController extends Controller
         // Check if the user has access to this store
         $hasAccess = $user->stores()->where('stores.id', $store->id)->exists();
 
-        if (!$hasAccess) {
+        if (! $hasAccess) {
             return response()->json([
-                'message' => 'No tienes acceso a este concesionario.'
+                'message' => 'No tienes acceso a este concesionario.',
             ], 403);
         }
 
@@ -43,7 +43,7 @@ class StoreController extends Controller
         $store->load('services');
 
         return response()->json([
-            'data' => $store
+            'data' => $store,
         ]);
     }
 }

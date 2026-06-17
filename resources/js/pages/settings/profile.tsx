@@ -10,17 +10,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import AdminLayout from '@/layouts/admin-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Configuración de perfil',
-        href: '/settings/profile',
-    },
-];
 
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
     const { auth } = usePage<SharedData>().props;
+    const isAdmin = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Configuración de perfil',
+            href: isAdmin ? '/admin/settings/profile' : '/dashboard/settings/profile',
+        },
+    ];
+
+    const Layout = isAdmin ? AdminLayout : AppLayout;
 
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
         name: auth.user.name,
@@ -30,11 +34,11 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        patch(route('profile.update'));
+        patch(isAdmin ? route('admin.settings.profile.update') : route('profile.update'));
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <Layout breadcrumbs={breadcrumbs}>
             <Head title="Configuración de perfil" />
 
             <SettingsLayout>
@@ -115,6 +119,6 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
                 <DeleteUser />
             </SettingsLayout>
-        </AppLayout>
+        </Layout>
     );
 }

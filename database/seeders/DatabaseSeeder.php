@@ -7,6 +7,7 @@ use App\Models\StoreService;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleDetail;
+use App\Models\VehicleFuel;
 use App\Models\VehicleImage;
 use App\Models\VehicleMark;
 use App\Models\VehicleType;
@@ -160,7 +161,7 @@ class DatabaseSeeder extends Seeder
         // 4b. Seed Vehicle Fuels
         $fuels = ['Nafta', 'Diesel', 'Híbrido', 'Eléctrico', 'GNC'];
         foreach ($fuels as $fuelName) {
-            \App\Models\VehicleFuel::updateOrCreate(['name' => $fuelName]);
+            VehicleFuel::updateOrCreate(['name' => $fuelName]);
         }
 
         // 5. Create Vehicle Type Templates
@@ -176,7 +177,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'type' => $tpl['type'],
                     'options' => $tpl['options'],
-                    'default_value' => $tpl['default_value']
+                    'default_value' => $tpl['default_value'],
                 ]
             );
         }
@@ -192,7 +193,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'type' => $tpl['type'],
                     'options' => $tpl['options'],
-                    'default_value' => $tpl['default_value']
+                    'default_value' => $tpl['default_value'],
                 ]
             );
         }

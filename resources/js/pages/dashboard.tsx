@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
 import { 
     Search, X, MapPin, Phone, Mail, Clock, Calendar, Gauge, Fuel, 
     Landmark, ShieldAlert, Share2, Pencil
@@ -128,6 +128,9 @@ export default function Dashboard({
     const storeRole = activeStore?.pivot?.role || 'employee';
     const isEmployee = storeRole === 'employee' || storeRole === 'editor';
 
+    const { auth } = usePage<SharedData>().props;
+    const isSuperAdmin = auth.user.is_superadmin === true || auth.user.is_superadmin === 1;
+
     // Filter states
     const [search, setSearch] = useState(filters.search || '');
     const [typeId, setTypeId] = useState(filters.vehicle_type_id || '');
@@ -240,21 +243,30 @@ export default function Dashboard({
                     </div>
 
                     <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <label htmlFor="store-select" className="text-sm font-medium text-slate-600 dark:text-zinc-400 hidden md:block whitespace-nowrap">
-                            Cambiar Concesionario:
-                        </label>
-                        <select
-                            id="store-select"
-                            value={activeStoreId || ''}
-                            onChange={(e) => handleStoreChange(Number(e.target.value))}
-                            className="bg-slate-50 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full p-2.5 sm:w-64"
-                        >
-                            {stores.map((store) => (
-                                <option key={store.id} value={store.id}>
-                                    {store.name}
-                                </option>
-                            ))}
-                        </select>
+                        {isSuperAdmin ? (
+                            <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs px-3 py-1.5 rounded-lg border border-amber-500/20 flex items-center gap-1.5">
+                                <ShieldAlert className="h-3.5 w-3.5" />
+                                Modo Administrador (Simulado)
+                            </div>
+                        ) : (
+                            <>
+                                <label htmlFor="store-select" className="text-sm font-medium text-slate-600 dark:text-zinc-400 hidden md:block whitespace-nowrap">
+                                    Cambiar Concesionario:
+                                </label>
+                                <select
+                                    id="store-select"
+                                    value={activeStoreId || ''}
+                                    onChange={(e) => handleStoreChange(Number(e.target.value))}
+                                    className="bg-slate-50 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full p-2.5 sm:w-64"
+                                >
+                                    {stores.map((store) => (
+                                        <option key={store.id} value={store.id}>
+                                            {store.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </>
+                        )}
                     </div>
                 </div>
 

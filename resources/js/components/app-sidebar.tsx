@@ -31,7 +31,7 @@ export function AppSidebar() {
     if (hasStores) {
         mainNavItems.push({
             title: 'Vehículos',
-            url: '/vehicles/manage',
+            url: '/dashboard/vehicles/manage',
             icon: Car,
         });
     }
@@ -39,12 +39,12 @@ export function AppSidebar() {
     if (isOwnerOrManager) {
         mainNavItems.push({
             title: 'Concesionario',
-            url: '/store/settings',
+            url: '/dashboard/store/settings',
             icon: Landmark,
         });
         mainNavItems.push({
             title: 'Plantillas',
-            url: '/templates/settings',
+            url: '/dashboard/templates/settings',
             icon: Layers,
         });
     }
@@ -52,7 +52,7 @@ export function AppSidebar() {
     if (isSuperAdmin) {
         mainNavItems.push({
             title: 'Admin Global',
-            url: '/settings/admin',
+            url: '/admin/dashboard',
             icon: ShieldAlert,
         });
     }

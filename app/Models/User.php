@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -55,7 +56,24 @@ class User extends Authenticatable
     public function stores()
     {
         return $this->belongsToMany(Store::class, 'stores_users')
-                    ->withPivot('role')
-                    ->withTimestamps();
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Start impersonating a store owner.
+     */
+    public function startImpersonation($storeId)
+    {
+        $this->stopImpersonation();
+        $this->stores()->attach($storeId, ['role' => 'owner']);
+    }
+
+    /**
+     * Stop impersonating and clean up temporary store relations.
+     */
+    public function stopImpersonation()
+    {
+        $this->stores()->detach();
     }
 }

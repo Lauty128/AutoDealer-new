@@ -20,7 +20,7 @@ class MetadataController extends Controller
         });
 
         return response()->json([
-            'data' => $marks
+            'data' => $marks,
         ]);
     }
 
@@ -34,7 +34,7 @@ class MetadataController extends Controller
         });
 
         return response()->json([
-            'data' => $types
+            'data' => $types,
         ]);
     }
 
@@ -48,7 +48,7 @@ class MetadataController extends Controller
         });
 
         return response()->json([
-            'data' => $templates
+            'data' => $templates,
         ]);
     }
 }

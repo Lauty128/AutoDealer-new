@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('address')->nullable();
-            
+
             // Redes Sociales & Contacto
             $table->string('whatsapp')->nullable();
             $table->string('instagram')->nullable();
@@ -35,11 +35,11 @@ return new class extends Migration
 
             // Presentación
             $table->text('presentation')->nullable();
-            
+
             // Recomendados
             $table->json('working_hours')->nullable(); // horarios de atención
             $table->text('map_iframe')->nullable(); // mapa de google
-            
+
             // SEO
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();

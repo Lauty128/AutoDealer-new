@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
 use App\Models\VehicleImage;
-use App\Models\VehicleDetail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class VehicleController extends Controller
 {
@@ -29,7 +28,7 @@ class VehicleController extends Controller
             'vehicle_type_id' => 'required|exists:vehicles_types,id',
             'vehicle_mark_id' => 'required|exists:vehicles_marks,id',
             'model' => 'required|string|max:255',
-            'year' => 'required|integer|min:1900|max:' . (date('Y') + 2),
+            'year' => 'required|integer|min:1900|max:'.(date('Y') + 2),
             'price' => 'required|numeric|min:0',
             'currency' => 'required|string|max:3',
             'plate' => 'nullable|string|max:20',
@@ -45,7 +44,7 @@ class VehicleController extends Controller
         ];
 
         // Only owner/manager can set cost_price
-        if (!$isEmployee) {
+        if (! $isEmployee) {
             $rules['cost_price'] = 'nullable|numeric|min:0';
         }
 
@@ -112,7 +111,7 @@ class VehicleController extends Controller
             'vehicle_type_id' => 'required|exists:vehicles_types,id',
             'vehicle_mark_id' => 'required|exists:vehicles_marks,id',
             'model' => 'required|string|max:255',
-            'year' => 'required|integer|min:1900|max:' . (date('Y') + 2),
+            'year' => 'required|integer|min:1900|max:'.(date('Y') + 2),
             'price' => 'required|numeric|min:0',
             'currency' => 'required|string|max:3',
             'plate' => 'nullable|string|max:20',
@@ -130,7 +129,7 @@ class VehicleController extends Controller
         ];
 
         // Only owner/manager can update cost_price
-        if (!$isEmployee) {
+        if (! $isEmployee) {
             $rules['cost_price'] = 'nullable|numeric|min:0';
         }
 
@@ -158,7 +157,7 @@ class VehicleController extends Controller
 
             // Handle deleting gallery images
             $deleteImages = $request->input('delete_images', []);
-            if (!empty($deleteImages)) {
+            if (! empty($deleteImages)) {
                 $imagesToDel = VehicleImage::whereIn('id', $deleteImages)->get();
                 foreach ($imagesToDel as $img) {
                     if (str_starts_with($img->path, '/storage/')) {
@@ -247,7 +246,7 @@ class VehicleController extends Controller
         ]);
 
         $vehicle->update([
-            'status' => $validated['status']
+            'status' => $validated['status'],
         ]);
 
         return redirect()->route('dashboard', ['store_id' => $store->id])->with([

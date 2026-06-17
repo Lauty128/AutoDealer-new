@@ -6,7 +6,7 @@ import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
-    const currentPath = window.location.pathname;
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
     const { auth } = usePage<SharedData>().props;
     const user = auth.user;
 
@@ -15,20 +15,21 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     // Check if user is owner/manager in any store
     const stores = (user.stores as any[]) || [];
     const isOwnerOrManager = stores.some(s => s.pivot?.role === 'owner' || s.pivot?.role === 'manager');
+    const isAdmin = currentPath.startsWith('/admin');
 
     // Dynamically build navigation tabs
     const sidebarNavItems: NavItem[] = [
         {
             title: 'Perfil',
-            url: '/settings/profile',
+            url: isAdmin ? '/admin/settings/profile' : '/dashboard/settings/profile',
         },
         {
             title: 'Contraseña',
-            url: '/settings/password',
+            url: isAdmin ? '/admin/settings/password' : '/dashboard/settings/password',
         },
         {
             title: 'Apariencia',
-            url: '/settings/appearance',
+            url: isAdmin ? '/admin/settings/appearance' : '/dashboard/settings/appearance',
         },
     ];
 

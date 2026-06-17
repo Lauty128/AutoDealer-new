@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { 
     Building2, Share2, Image as ImageIcon, Clock, Sparkles, Palette, 
-    FileText, Plus, Trash2, Globe, Eye
+    FileText, Plus, Trash2, Globe, Eye, ShieldAlert
 } from 'lucide-react';
 import { FormEventHandler, useRef, useEffect, useState } from 'react';
 
@@ -144,6 +144,8 @@ function RichTextEditor({ value, onChange }: { value: string; onChange: (val: st
 
 export default function StoreSettings({ stores, activeStore, status, message }: StoreProps) {
     const [activeTab, setActiveTab] = useState<'general' | 'social' | 'images' | 'services' | 'hours' | 'design'>('general');
+    const { auth } = usePage<SharedData>().props;
+    const isSuperAdmin = auth.user.is_superadmin === true || auth.user.is_superadmin === 1;
     
     // Preview states for image uploads
     const [logoPreview, setLogoPreview] = useState<string | null>(activeStore?.logo || null);
@@ -317,20 +319,29 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
                             title="Datos del Concesionario" 
                             description="Personaliza la información de marca, contacto y apariencia de tu local" 
                         />
-                        {stores.length > 1 && (
+                        {isSuperAdmin ? (
                             <div className="flex items-center gap-2">
-                                <Label htmlFor="store-selector" className="text-xs font-semibold text-slate-500 whitespace-nowrap">Gestionar:</Label>
-                                <select
-                                    id="store-selector"
-                                    value={data.id}
-                                    onChange={(e) => handleStoreChange(Number(e.target.value))}
-                                    className="bg-slate-50 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-xs rounded-lg p-2 w-48 font-medium focus:ring-brand focus:border-brand"
-                                >
-                                    {stores.map((s) => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
-                                    ))}
-                                </select>
+                                <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs px-3 py-1.5 rounded-lg border border-amber-500/20 flex items-center gap-1.5">
+                                    <ShieldAlert className="h-3.5 w-3.5" />
+                                    Modo Administrador (Simulado)
+                                </div>
                             </div>
+                        ) : (
+                            stores.length > 1 && (
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="store-selector" className="text-xs font-semibold text-slate-500 whitespace-nowrap">Gestionar:</Label>
+                                    <select
+                                        id="store-selector"
+                                        value={data.id}
+                                        onChange={(e) => handleStoreChange(Number(e.target.value))}
+                                        className="bg-slate-50 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-xs rounded-lg p-2 w-48 font-medium focus:ring-brand focus:border-brand"
+                                    >
+                                        {stores.map((s) => (
+                                            <option key={s.id} value={s.id}>{s.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )
                         )}
                     </div>
 

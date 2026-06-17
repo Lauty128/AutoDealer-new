@@ -35,7 +35,7 @@ class TemplateController extends Controller
         $activeStoreId = (int) $request->input('store_id', $stores->first()->id);
         $activeStore = $stores->firstWhere('id', $activeStoreId);
 
-        if (!$activeStore) {
+        if (! $activeStore) {
             $activeStore = $stores->first();
             $activeStoreId = $activeStore->id;
         }
@@ -44,7 +44,7 @@ class TemplateController extends Controller
         $role = $activeStore->pivot->role;
         $isAuthorized = ($role === 'owner' || $role === 'manager');
 
-        if (!$isAuthorized) {
+        if (! $isAuthorized) {
             return Inertia::render('settings/templates', [
                 'stores' => $stores->map(function ($s) {
                     return ['id' => $s->id, 'name' => $s->name];

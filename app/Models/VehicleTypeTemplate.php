@@ -61,4 +61,20 @@ class VehicleTypeTemplate extends Model
     {
         return $this->belongsTo(VehicleType::class, 'vehicle_type_id');
     }
+
+    /**
+     * Get the store that owns this template.
+     */
+    public function store()
+    {
+        return $this->belongsTo(Store::class, 'store_id');
+    }
+
+    /**
+     * Get the vehicle type that owns this template (as relation).
+     */
+    public function typeRelation()
+    {
+        return $this->belongsTo(VehicleType::class, 'vehicle_type_id');
+    }
 }

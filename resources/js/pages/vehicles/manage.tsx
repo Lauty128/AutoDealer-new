@@ -138,6 +138,9 @@ export default function Manage({
     const storeRole = activeStore?.pivot?.role || 'employee';
     const isEmployee = storeRole === 'employee' || storeRole === 'editor';
 
+    const { auth } = usePage<SharedData>().props;
+    const isSuperAdmin = auth.user.is_superadmin === true || auth.user.is_superadmin === 1;
+
     // Flash Messages
     const { flash } = usePage<SharedData>().props as any;
 
@@ -421,24 +424,33 @@ export default function Manage({
                         </div>
                     </div>
 
-                    {stores.length > 1 && (
+                    {isSuperAdmin ? (
                         <div className="flex items-center gap-2 w-full sm:w-auto">
-                            <label htmlFor="store-select" className="text-xs font-semibold text-slate-500 whitespace-nowrap hidden md:block">
-                                Concesionario:
-                            </label>
-                            <select
-                                id="store-select"
-                                value={activeStoreId || ''}
-                                onChange={(e) => handleStoreChange(Number(e.target.value))}
-                                className="bg-slate-50 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-xs rounded-lg p-2 font-medium focus:ring-brand focus:border-brand w-full sm:w-48"
-                            >
-                                {stores.map((store) => (
-                                    <option key={store.id} value={store.id}>
-                                        {store.name}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs px-3 py-1.5 rounded-lg border border-amber-500/20 flex items-center gap-1.5">
+                                <ShieldAlert className="h-3.5 w-3.5" />
+                                Modo Administrador (Simulado)
+                            </div>
                         </div>
+                    ) : (
+                        stores.length > 1 && (
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <label htmlFor="store-select" className="text-xs font-semibold text-slate-500 whitespace-nowrap hidden md:block">
+                                    Concesionario:
+                                </label>
+                                <select
+                                    id="store-select"
+                                    value={activeStoreId || ''}
+                                    onChange={(e) => handleStoreChange(Number(e.target.value))}
+                                    className="bg-slate-50 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-xs rounded-lg p-2 font-medium focus:ring-brand focus:border-brand w-full sm:w-48"
+                                >
+                                    {stores.map((store) => (
+                                        <option key={store.id} value={store.id}>
+                                            {store.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )
                     )}
                 </div>
 

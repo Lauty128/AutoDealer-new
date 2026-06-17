@@ -5,18 +5,23 @@ import HeadingSmall from '@/components/heading-small';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';
+import AdminLayout from '@/layouts/admin-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Configuración de apariencia',
-        href: '/settings/appearance',
-    },
-];
-
 export default function Appearance() {
+    const isAdmin = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Configuración de apariencia',
+            href: isAdmin ? '/admin/settings/appearance' : '/dashboard/settings/appearance',
+        },
+    ];
+
+    const Layout = isAdmin ? AdminLayout : AppLayout;
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <Layout breadcrumbs={breadcrumbs}>
             <Head title="Configuración de apariencia" />
 
             <SettingsLayout>
@@ -25,6 +30,6 @@ export default function Appearance() {
                     <AppearanceTabs />
                 </div>
             </SettingsLayout>
-        </AppLayout>
+        </Layout>
     );
 }

@@ -1,14 +1,14 @@
 <?php
 
-use App\Models\User;
 use App\Models\Store;
 use App\Models\StoreService;
-use App\Models\VehicleType;
-use App\Models\VehicleMark;
+use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleMark;
+use App\Models\VehicleType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 
@@ -33,12 +33,12 @@ test('user can log in via api and receive stores info', function () {
     $response->assertStatus(200)
         ->assertJsonStructure([
             'user' => [
-                'id', 
-                'name', 
+                'id',
+                'name',
                 'email',
                 'stores' => [
-                    '*' => ['id', 'name', 'slug']
-                ]
+                    '*' => ['id', 'name', 'slug'],
+                ],
             ],
             'token',
         ]);
@@ -119,8 +119,8 @@ test('authenticated user can list vehicles from their stores', function () {
     $token = $user->createToken('test-token')->plainTextToken;
 
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $token,
-    ])->getJson('/api/vehicles?store_id=' . $store->id);
+        'Authorization' => 'Bearer '.$token,
+    ])->getJson('/api/vehicles?store_id='.$store->id);
 
     $response->assertStatus(200)
         ->assertJsonCount(1, 'data')
@@ -143,7 +143,7 @@ test('user can verify session and get user profile with stores', function () {
     $token = $user->createToken('test-token')->plainTextToken;
 
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $token,
+        'Authorization' => 'Bearer '.$token,
     ])->getJson('/api/user');
 
     $response->assertStatus(200)
@@ -153,9 +153,9 @@ test('user can verify session and get user profile with stores', function () {
                 'name',
                 'email',
                 'stores' => [
-                    '*' => ['id', 'name', 'slug', 'services']
-                ]
-            ]
+                    '*' => ['id', 'name', 'slug', 'services'],
+                ],
+            ],
         ]);
 });
 
@@ -175,7 +175,7 @@ test('user can list stores they have access to', function () {
     $token = $user->createToken('test-token')->plainTextToken;
 
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $token,
+        'Authorization' => 'Bearer '.$token,
     ])->getJson('/api/stores');
 
     $response->assertStatus(200)
@@ -211,8 +211,8 @@ test('user store details access validation', function () {
 
     // Access to own store -> OK
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $token,
-    ])->getJson('/api/stores/' . $myStore->id);
+        'Authorization' => 'Bearer '.$token,
+    ])->getJson('/api/stores/'.$myStore->id);
 
     $response->assertStatus(200)
         ->assertJsonPath('data.name', 'Charlies Auto')
@@ -220,8 +220,8 @@ test('user store details access validation', function () {
 
     // Access to other store -> Forbidden (403)
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $token,
-    ])->getJson('/api/stores/' . $otherStore->id);
+        'Authorization' => 'Bearer '.$token,
+    ])->getJson('/api/stores/'.$otherStore->id);
 
     $response->assertStatus(403);
 });
@@ -245,7 +245,7 @@ test('cached filters return marks, types and templates and handle auto cache cle
 
     // Query filters -> triggers cache fill
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $token,
+        'Authorization' => 'Bearer '.$token,
     ])->getJson('/api/filters/marks');
 
     $response->assertStatus(200)

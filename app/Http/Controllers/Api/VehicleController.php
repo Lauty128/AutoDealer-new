@@ -36,7 +36,7 @@ class VehicleController extends Controller
         $vehicles = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
-            'data' => $vehicles
+            'data' => $vehicles,
         ]);
     }
 }

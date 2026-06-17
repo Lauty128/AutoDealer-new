@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\MetadataController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\VehicleController;
-use App\Http\Controllers\Api\MetadataController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -12,13 +12,14 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Protected routes (require Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // Session Verification & User Profile with Authorized Stores
     Route::get('/user', function (Request $request) {
         $user = $request->user();
         $user->load(['stores.services']);
+
         return response()->json([
-            'user' => $user
+            'user' => $user,
         ]);
     });
 

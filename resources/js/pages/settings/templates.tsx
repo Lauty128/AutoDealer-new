@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Head, router, useForm } from '@inertiajs/react';
-import { Plus, Trash2, ArrowLeft, RefreshCw, Layers, Check, Sparkles } from 'lucide-react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Plus, Trash2, ArrowLeft, RefreshCw, Layers, Check, Sparkles, ShieldAlert } from 'lucide-react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
 import { useState, useEffect } from 'react';
 
 interface Store {
@@ -51,6 +52,8 @@ export default function Templates({ stores, activeStoreId, vehicleTypes, templat
         vehicleTypes.length > 0 ? String(vehicleTypes[0].id) : ''
     );
     const [storeId, setStoreId] = useState<number>(activeStoreId);
+    const { auth } = usePage<SharedData>().props;
+    const isSuperAdmin = auth.user.is_superadmin === true || auth.user.is_superadmin === 1;
 
     // Dynamic fields editor state
     const [fields, setFields] = useState<Partial<TemplateField>[]>([]);
@@ -169,22 +172,31 @@ export default function Templates({ stores, activeStoreId, vehicleTypes, templat
                     <Separator />
 
                     {/* Store Selector */}
-                    {stores.length > 1 && (
+                    {isSuperAdmin ? (
                         <div className="flex flex-col gap-2 max-w-sm">
-                            <Label htmlFor="active-store-select" className="text-sm font-medium">Concesionario Activo</Label>
-                            <Select value={String(storeId)} onValueChange={handleStoreChange}>
-                                <SelectTrigger id="active-store-select">
-                                    <SelectValue placeholder="Seleccionar Concesionario" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {stores.map(s => (
-                                        <SelectItem key={s.id} value={String(s.id)}>
-                                            {s.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs px-3 py-1.5 rounded-lg border border-amber-500/20 flex items-center gap-1.5 w-fit">
+                                <ShieldAlert className="h-3.5 w-3.5" />
+                                Modo Administrador (Simulado)
+                            </div>
                         </div>
+                    ) : (
+                        stores.length > 1 && (
+                            <div className="flex flex-col gap-2 max-w-sm">
+                                <Label htmlFor="active-store-select" className="text-sm font-medium">Concesionario Activo</Label>
+                                <Select value={String(storeId)} onValueChange={handleStoreChange}>
+                                    <SelectTrigger id="active-store-select">
+                                        <SelectValue placeholder="Seleccionar Concesionario" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {stores.map(s => (
+                                            <SelectItem key={s.id} value={String(s.id)}>
+                                                {s.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )
                     )}
 
                     {status === 'success' && (

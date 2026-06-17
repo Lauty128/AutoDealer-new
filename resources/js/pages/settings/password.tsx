@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
+import AdminLayout from '@/layouts/admin-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
@@ -11,16 +12,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Configuración de contraseña',
-        href: '/settings/password',
-    },
-];
-
 export default function Password() {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+    const isAdmin = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Configuración de contraseña',
+            href: isAdmin ? '/admin/settings/password' : '/dashboard/settings/password',
+        },
+    ];
+
+    const Layout = isAdmin ? AdminLayout : AppLayout;
 
     const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm({
         current_password: '',
@@ -31,7 +35,7 @@ export default function Password() {
     const updatePassword: FormEventHandler = (e) => {
         e.preventDefault();
 
-        put(route('password.update'), {
+        put(isAdmin ? route('admin.settings.password.update') : route('password.update'), {
             preserveScroll: true,
             onSuccess: () => reset(),
             onError: (errors) => {
@@ -49,7 +53,7 @@ export default function Password() {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <Layout breadcrumbs={breadcrumbs}>
             <Head title="Configuración de contraseña" />
 
             <SettingsLayout>
@@ -123,6 +127,6 @@ export default function Password() {
                     </form>
                 </div>
             </SettingsLayout>
-        </AppLayout>
+        </Layout>
     );
 }

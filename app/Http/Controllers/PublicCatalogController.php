@@ -26,7 +26,7 @@ class PublicCatalogController extends Controller
 
         // Apply filters
         if ($request->has('search') && $request->input('search') !== '') {
-            $query->where('model', 'like', '%' . $request->input('search') . '%');
+            $query->where('model', 'like', '%'.$request->input('search').'%');
         }
 
         if ($request->has('vehicle_type_id') && $request->input('vehicle_type_id') !== '') {
@@ -49,7 +49,7 @@ class PublicCatalogController extends Controller
 
         // Load store-specific templates
         $storeTemplates = VehicleTypeTemplate::where('store_id', $store->id)->get();
-        
+
         // Find vehicle types that do not have custom store templates
         $typesWithCustom = $storeTemplates->pluck('vehicle_type_id')->unique()->toArray();
         $systemTemplates = VehicleTypeTemplate::whereNull('store_id')
@@ -68,7 +68,7 @@ class PublicCatalogController extends Controller
                 'vehicle_type_id' => $request->input('vehicle_type_id', ''),
                 'vehicle_mark_id' => $request->input('vehicle_mark_id', ''),
                 'search' => $request->input('search', ''),
-            ]
+            ],
         ]);
     }
 }
