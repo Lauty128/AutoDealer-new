@@ -15,14 +15,14 @@ export default function AuthSimpleLayout({ children, title, description }: AuthL
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">
                         <Link href={route('home')} className="flex flex-col items-center gap-2 font-medium">
-                            <img 
-                                src="/assets/logo-h.png" 
-                                alt="AutoDealer" 
+                            <img
+                                src="/assets/logo-h.png"
+                                alt="AutoDealer"
                                 className="h-10 object-contain dark:hidden"
                             />
-                            <img 
-                                src="/assets/logo-h-contrast.png" 
-                                alt="AutoDealer" 
+                            <img
+                                src="/assets/logo-h-dark.png"
+                                alt="AutoDealer"
                                 className="h-10 object-contain hidden dark:block"
                             />
                             <span className="sr-only">{title}</span>

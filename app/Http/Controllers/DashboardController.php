@@ -7,6 +7,7 @@ use App\Models\VehicleFuel;
 use App\Models\VehicleMark;
 use App\Models\VehicleType;
 use App\Models\VehicleTypeTemplate;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,8 +17,15 @@ class DashboardController extends Controller
     /**
      * Display the authenticated read-only dashboard.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
+        $user = $request->user();
+
+        // If user has no stores, redirect to onboarding
+        if (! $user->stores()->exists()) {
+            return to_route('onboarding.store');
+        }
+
         $data = $this->getDashboardData($request);
 
         return Inertia::render('dashboard', $data);

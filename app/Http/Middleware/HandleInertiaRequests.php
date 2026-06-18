@@ -55,14 +55,13 @@ class HandleInertiaRequests extends Middleware
         }
 
         return array_merge(parent::share($request), [
-            ...parent::share($request),
-            'name' => config('app.name'),
+            'name'  => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
-            'auth' => [
+            'auth'  => [
                 'user' => $request->user(),
             ],
             'activeStore' => $activeStore ? [
-                'id' => $activeStore->id,
+                'id'   => $activeStore->id,
                 'name' => $activeStore->name,
                 'slug' => $activeStore->slug,
             ] : null,

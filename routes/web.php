@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MercadoPagoWebhookController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -37,7 +38,7 @@ Route::post('webhooks/mercadopago', [MercadoPagoWebhookController::class, 'handl
     ->name('webhooks.mercadopago');
 
 // Authenticated routes
-Route::middleware(['auth', 'impersonate_superadmin'])->prefix('dashboard')->group(function () {
+Route::middleware(['auth', 'verified', 'impersonate_superadmin'])->prefix('dashboard')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Billing & Subscription portal (Exempt from subscribed restrictions)
@@ -72,6 +73,12 @@ Route::middleware(['auth', 'impersonate_superadmin'])->prefix('dashboard')->grou
         Route::post('templates/settings', [TemplateController::class, 'update'])->name('templates.settings.update');
         Route::post('templates/settings/reset', [TemplateController::class, 'reset'])->name('templates.settings.reset');
     });
+});
+
+// Onboarding routes (auth + email verified required)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('onboarding/store', [OnboardingController::class, 'create'])->name('onboarding.store');
+    Route::post('onboarding/store', [OnboardingController::class, 'store'])->name('onboarding.store.submit');
 });
 
 // Administrative standalone panel routes

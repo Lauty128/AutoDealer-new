@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
                 'billing_period' => 'monthly',
                 'trial_days' => 90, // 3 months trial
                 'is_active' => true,
+                'is_default' => true,
             ]
         );
 

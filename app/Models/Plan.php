@@ -18,6 +18,12 @@ class Plan extends Model
         'billing_period',
         'trial_days',
         'is_active',
+        'is_default',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'is_default' => 'boolean',
     ];
 
     /**

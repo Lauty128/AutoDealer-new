@@ -20,6 +20,8 @@ class Store extends Model
         'phone',
         'email',
         'address',
+        'province',
+        'city',
         'whatsapp',
         'instagram',
         'facebook',

@@ -16,14 +16,14 @@ export default function AuthCardLayout({
         <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
             <div className="flex w-full max-w-md flex-col gap-6">
                 <Link href={route('home')} className="flex items-center gap-2 self-center font-medium">
-                    <img 
-                        src="/assets/logo-h.png" 
-                        alt="AutoDealer" 
+                    <img
+                        src="/assets/logo-h.png"
+                        alt="AutoDealer"
                         className="h-10 object-contain dark:hidden"
                     />
-                    <img 
-                        src="/assets/logo-h-contrast.png" 
-                        alt="AutoDealer" 
+                    <img
+                        src="/assets/logo-h-dark.png"
+                        alt="AutoDealer"
                         className="h-10 object-contain hidden dark:block"
                     />
                 </Link>
