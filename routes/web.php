@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\AdminTemplateController;
 use App\Http\Controllers\Admin\AdminTypeController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminVehicleController;
+use App\Http\Controllers\Admin\AdminPlanController;
+use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MercadoPagoWebhookController;
@@ -93,6 +95,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('users', [AdminUserController::class, 'store'])->name('users.store');
         Route::post('users/{id}', [AdminUserController::class, 'update'])->name('users.update');
         Route::delete('users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+
+        // Plans CRUD
+        Route::get('plans', [AdminPlanController::class, 'index'])->name('plans.index');
+        Route::post('plans', [AdminPlanController::class, 'store'])->name('plans.store');
+        Route::post('plans/{id}', [AdminPlanController::class, 'update'])->name('plans.update');
+        Route::delete('plans/{id}', [AdminPlanController::class, 'destroy'])->name('plans.destroy');
+
+        // Subscriptions & Payments
+        Route::get('subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');
+        Route::post('subscriptions/{id}', [AdminSubscriptionController::class, 'update'])->name('subscriptions.update');
 
         // Stores CRUD
         Route::get('stores', [AdminStoreController::class, 'index'])->name('stores.index');

@@ -1,6 +1,6 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Users, Landmark, Layers, Car, ArrowLeft, Tags, Boxes, Fuel } from 'lucide-react';
+import { LayoutGrid, Users, Landmark, Layers, Car, ArrowLeft, Tags, Boxes, Fuel, CreditCard, Receipt } from 'lucide-react';
 import AppLogo from '../app-logo';
 import { NavUser } from '../nav-user';
 
@@ -26,6 +26,16 @@ export function AdminSidebar() {
             title: 'Concesionarios',
             url: '/admin/stores',
             icon: Landmark,
+        },
+        {
+            title: 'Planes',
+            url: '/admin/plans',
+            icon: CreditCard,
+        },
+        {
+            title: 'Suscripciones y Pagos',
+            url: '/admin/subscriptions',
+            icon: Receipt,
         },
         {
             title: 'Marcas',
