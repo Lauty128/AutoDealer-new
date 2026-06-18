@@ -38,13 +38,13 @@ interface Vehicle {
     id: number;
     store_id: number;
     model: string;
+    slug: string;
     year: number;
     price: number;
     currency: string;
     cover_image: string;
     plate: string;
     engine: string;
-    suspension: string;
     fuel_type: string;
     mileage: number;
     description: string;
@@ -91,7 +91,6 @@ interface VehicleForm {
     currency: string;
     plate: string;
     engine: string;
-    suspension: string;
     fuel_type: string;
     mileage: string;
     description: string;
@@ -176,7 +175,6 @@ export default function VehicleFormPage({
         currency: vehicle ? vehicle.currency : (activeStore?.currency || 'USD'),
         plate: vehicle ? (vehicle.plate || '') : '',
         engine: vehicle ? (vehicle.engine || '') : '',
-        suspension: vehicle ? (vehicle.suspension || '') : '',
         fuel_type: vehicle ? (vehicle.fuel_type || '') : '',
         mileage: vehicle ? (vehicle.mileage !== null ? String(vehicle.mileage) : '') : '',
         description: vehicle ? (vehicle.description || '') : '',
@@ -452,11 +450,9 @@ export default function VehicleFormPage({
                                     />
                                     {errors.year && <p className="text-xs text-red-500">{errors.year}</p>}
                                 </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="vehicle-engine">Especificación del Motor</Label>
+                                <div className="grid gap-1.5 sm:col-span-2">
+                                    <Label htmlFor="vehicle-engine">Especificación del Motor / Cilindrada</Label>
                                     <Input
                                         id="vehicle-engine"
                                         value={data.engine}
@@ -464,16 +460,6 @@ export default function VehicleFormPage({
                                         placeholder="Ej: 2.0L Turbo, 16v, 250cc..."
                                     />
                                     {errors.engine && <p className="text-xs text-red-500">{errors.engine}</p>}
-                                </div>
-
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="vehicle-suspension">Detalles de Suspensión</Label>
-                                    <Input
-                                        id="vehicle-suspension"
-                                        value={data.suspension}
-                                        onChange={e => setData('suspension', e.target.value)}
-                                        placeholder="Ej: MacPherson, Horquilla Telescópica..."
-                                    />
                                 </div>
                             </div>
                         </div>

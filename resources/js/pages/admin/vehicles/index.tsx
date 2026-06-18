@@ -50,7 +50,6 @@ interface Vehicle {
     plate: string;
     cover_image: string | null;
     engine: string | null;
-    suspension: string | null;
     fuel_type: string | null;
     mileage: number | null;
     description: string | null;

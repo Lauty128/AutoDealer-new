@@ -65,7 +65,6 @@ interface Vehicle {
     cover_image: string;
     plate: string;
     engine: string;
-    suspension: string;
     fuel_type: string;
     mileage: number;
     description: string;

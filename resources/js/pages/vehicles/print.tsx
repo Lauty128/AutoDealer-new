@@ -27,7 +27,6 @@ interface Vehicle {
     cover_image: string;
     plate: string;
     engine: string;
-    suspension: string;
     fuel_type: string;
     mileage: number;
     description: string;
@@ -264,10 +263,6 @@ export default function VehiclePrintPage({ vehicle, store }: PrintProps) {
                         </h3>
 
                         <div className="divide-y divide-slate-100 text-sm">
-                            <div className="flex justify-between py-2">
-                                <span className="text-slate-500 font-medium">Suspensión</span>
-                                <span className="font-semibold text-slate-800">{vehicle.suspension || 'Estándar'}</span>
-                            </div>
                             {vehicle.details.map(detail => (
                                 <div key={detail.id} className="flex justify-between py-2">
                                     <span className="text-slate-500 font-medium capitalize">{formatLabel(detail.label)}</span>

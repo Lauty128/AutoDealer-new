@@ -46,7 +46,6 @@ interface Vehicle {
     cover_image: string;
     plate: string;
     engine: string;
-    suspension: string;
     fuel_type: string;
     mileage: number;
     description: string;
@@ -98,7 +97,6 @@ interface VehicleForm {
     currency: string;
     plate: string;
     engine: string;
-    suspension: string;
     fuel_type: string;
     mileage: string;
     description: string;

@@ -26,7 +26,6 @@ class Vehicle extends Model
         'cover_image',
         'plate',
         'engine',
-        'suspension',
         'fuel_type',
         'mileage',
         'description',

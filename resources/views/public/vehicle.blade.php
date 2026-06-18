@@ -225,12 +225,7 @@
                     </div>
                 @endif
 
-                <!-- Additional Specs Templates -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 bg-white p-2 rounded-xl">
-                    <div class="flex justify-between items-center py-2.5 border-b border-slate-100 text-sm">
-                        <span class="text-slate-500 font-semibold">Suspensión</span>
-                        <span class="font-bold text-slate-800">{{ $vehicle->suspension ?: 'Estándar' }}</span>
-                    </div>
                     @foreach($vehicle->details as $detail)
                         @if($detail->value)
                             <div class="flex justify-between items-center py-2.5 border-b border-slate-100 text-sm">
