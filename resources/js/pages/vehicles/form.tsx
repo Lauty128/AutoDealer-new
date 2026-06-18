@@ -3,7 +3,7 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import {
     ArrowLeft, Upload, X, Trash2, Calendar, Gauge, Fuel,
-    Landmark, ShieldAlert, Sparkles, AlertCircle, Save
+    Landmark, ShieldAlert, Sparkles, AlertCircle, Save, Plus
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -166,7 +166,7 @@ export default function VehicleFormPage({
     };
 
     // Form setup using Inertia useForm
-    const { data, setData, post, processing, errors } = useForm<VehicleForm>({
+    const { data, setData, post, processing, errors, transform } = useForm<VehicleForm>({
         store_id: vehicle ? vehicle.store_id : (activeStoreId || ''),
         vehicle_type_id: vehicle ? String(vehicle.type.id) : (types[0]?.id ? String(types[0].id) : ''),
         vehicle_mark_id: vehicle ? String(vehicle.mark.id) : (marks[0]?.id ? String(marks[0].id) : ''),
@@ -196,6 +196,48 @@ export default function VehicleFormPage({
     const [coverPreview, setCoverPreview] = useState<string | null>(vehicle ? vehicle.cover_image : null);
     const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
     const [existingGallery, setExistingGallery] = useState<VehicleImage[]>(vehicle ? vehicle.images : []);
+
+    // Custom manual specifications state
+    const [customSpecs, setCustomSpecs] = useState<{ label: string; value: string }[]>([]);
+
+    useEffect(() => {
+        if (isEditMode && vehicle) {
+            const relevantTemplateLabels = templates
+                .filter(t => t.vehicle_type_id === vehicle.type.id)
+                .map(t => t.label);
+
+            const initialCustomSpecs: { label: string; value: string }[] = [];
+            vehicle.details.forEach(d => {
+                if (!relevantTemplateLabels.includes(d.label)) {
+                    initialCustomSpecs.push({
+                        label: d.label,
+                        value: d.value
+                    });
+                }
+            });
+            setCustomSpecs(initialCustomSpecs);
+        }
+    }, [vehicle, templates]);
+
+    const handleAddCustomSpec = () => {
+        setCustomSpecs([...customSpecs, { label: '', value: '' }]);
+    };
+
+    const handleRemoveCustomSpec = (index: number) => {
+        setCustomSpecs(customSpecs.filter((_, i) => i !== index));
+    };
+
+    const handleCustomSpecLabelChange = (index: number, label: string) => {
+        const updated = [...customSpecs];
+        updated[index].label = label;
+        setCustomSpecs(updated);
+    };
+
+    const handleCustomSpecValueChange = (index: number, value: string) => {
+        const updated = [...customSpecs];
+        updated[index].value = value;
+        setCustomSpecs(updated);
+    };
 
     // Set dynamic template default values when vehicle type is changed
     const handleVehicleTypeChange = (selectedTypeIdStr: string) => {
@@ -254,6 +296,32 @@ export default function VehicleFormPage({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Combine template details and custom details
+        const finalDetails: Record<string, string> = {};
+
+        // 1. Get the current template fields for this vehicle type
+        const typeTemplates = templates.filter(t => t.vehicle_type_id === Number(data.vehicle_type_id));
+        
+        // 2. Put template details in finalDetails
+        typeTemplates.forEach(t => {
+            if (data.details[t.label] !== undefined && data.details[t.label] !== '') {
+                finalDetails[t.label] = data.details[t.label];
+            }
+        });
+
+        // 3. Put custom specs in finalDetails
+        customSpecs.forEach(spec => {
+            const trimmedLabel = spec.label.trim();
+            if (trimmedLabel !== '' && spec.value.trim() !== '') {
+                finalDetails[trimmedLabel] = spec.value;
+            }
+        });
+
+        transform((prevData) => ({
+            ...prevData,
+            details: finalDetails,
+        }));
 
         if (isEditMode && vehicle) {
             post(route('vehicles.update', vehicle.id));
@@ -542,14 +610,27 @@ export default function VehicleFormPage({
                             </div>
                         </div>
 
-                        {/* Section 3: Dynamic Specifications Template */}
-                        {templates.filter(t => t.vehicle_type_id === Number(data.vehicle_type_id)).length > 0 && (
-                            <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+                        {/* Section 3: Dynamic Specifications Template & Custom Specifications */}
+                        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-5">
+                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
                                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 flex items-center gap-1.5">
                                     <Sparkles className="h-4 w-4 text-purple-500" />
-                                    Especificaciones Técnicas Adicionales
+                                    Especificaciones Técnicas
                                 </h3>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleAddCustomSpec}
+                                    className="h-8 text-xs flex items-center gap-1 border-indigo-200 dark:border-zinc-800 hover:bg-indigo-50 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400"
+                                >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Agregar Fila Personalizada
+                                </Button>
+                            </div>
 
+                            {/* Template-defined fields */}
+                            {templates.filter(t => t.vehicle_type_id === Number(data.vehicle_type_id)).length > 0 && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {templates
                                         .filter(t => t.vehicle_type_id === Number(data.vehicle_type_id))
@@ -581,8 +662,57 @@ export default function VehicleFormPage({
                                         ))
                                     }
                                 </div>
-                            </div>
-                        )}
+                            )}
+
+                            {/* Custom manually-defined fields */}
+                            {customSpecs.length > 0 && (
+                                <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-zinc-850">
+                                    <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                        Especificaciones Personalizadas
+                                    </Label>
+                                    <div className="space-y-3">
+                                        {customSpecs.map((spec, index) => (
+                                            <div key={index} className="flex items-center gap-3 bg-slate-50/50 dark:bg-zinc-950 p-3 rounded-xl border border-slate-150 dark:border-zinc-850">
+                                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <div className="grid gap-1">
+                                                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase">Característica</span>
+                                                        <Input
+                                                            value={spec.label}
+                                                            onChange={e => handleCustomSpecLabelChange(index, e.target.value)}
+                                                            placeholder="Ej: Techo solar, Tapizado, etc."
+                                                            className="h-9 text-xs bg-white dark:bg-zinc-900"
+                                                        />
+                                                    </div>
+                                                    <div className="grid gap-1">
+                                                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase">Valor / Detalle</span>
+                                                        <Input
+                                                            value={spec.value}
+                                                            onChange={e => handleCustomSpecValueChange(index, e.target.value)}
+                                                            placeholder="Ej: Sí, Cuero negro, etc."
+                                                            className="h-9 text-xs bg-white dark:bg-zinc-900"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveCustomSpec(index)}
+                                                    className="self-end mb-1 p-2 text-red-500 hover:text-red-750 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors shrink-0"
+                                                    title="Eliminar especificación"
+                                                >
+                                                    <Trash2 className="h-4.5 w-4.5" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {templates.filter(t => t.vehicle_type_id === Number(data.vehicle_type_id)).length === 0 && customSpecs.length === 0 && (
+                                <div className="text-center p-6 border border-dashed border-slate-200 dark:border-zinc-800 rounded-xl text-slate-400 text-xs">
+                                    No hay especificaciones definidas. Haz clic en "Agregar Fila Personalizada" para crear una.
+                                </div>
+                            )}
+                        </div>
 
                         {/* Section 4: General Description */}
                         <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">

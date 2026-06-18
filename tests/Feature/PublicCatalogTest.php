@@ -126,6 +126,11 @@ test('public vehicle details displays specific vehicle information and SEO tags'
         'engine' => '2.5L Hybrid',
     ]);
 
+    $vehicle->details()->create([
+        'label' => 'Techo Solar',
+        'value' => 'Panorámico corredizo',
+    ]);
+
     $response = $this->get('/concesionario/norte/' . $vehicle->id);
     $response->assertStatus(200);
 
@@ -136,6 +141,8 @@ test('public vehicle details displays specific vehicle information and SEO tags'
     $response->assertSee('nafta');
     $response->assertSee('2.5L Hybrid');
     $response->assertSee('Un vehículo increíble en excelente estado.');
+    $response->assertSee('Techo Solar');
+    $response->assertSee('Panorámico corredizo');
 
     // Verify SEO Meta Tags are present in the HTML (Server-Side Rendered)
     $response->assertSee('<meta name="description" content="Ficha técnica de Toyota RAV4 Hybrid año 2022. Kilometraje: 12.000 km. Combustible: nafta. Precio: US$ 45.000 en Auto Showroom Norte.">', false);
