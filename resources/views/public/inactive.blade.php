@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <title>{{ $store->name }} - Catálogo Inactivo</title>
+
+    @if($store->logo)
+        <link rel="icon" type="image/*" href="{{ $store->logo }}">
+    @else
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    @endif
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

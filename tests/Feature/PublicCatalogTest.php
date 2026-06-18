@@ -67,6 +67,7 @@ test('public catalog lists vehicles and allows filter options without authentica
     $response = $this->get('/concesionario/' . $store->id);
     $response->assertStatus(200);
     $response->assertSee('Auto Showroom Norte');
+    $response->assertSee('href="' . asset('favicon.ico') . '"', false);
     $response->assertSee('El mejor concesionario de la zona norte.');
     $response->assertSee('RAV4');
     $response->assertSee('SW4');
@@ -99,6 +100,7 @@ test('public vehicle details displays specific vehicle information and SEO tags'
         'name' => 'Auto Showroom Norte',
         'slug' => 'norte',
         'phone' => '123456789',
+        'logo' => 'https://example.com/logo.png',
     ]);
 
     Subscription::create([
@@ -133,6 +135,7 @@ test('public vehicle details displays specific vehicle information and SEO tags'
 
     $response = $this->get('/concesionario/norte/' . $vehicle->id);
     $response->assertStatus(200);
+    $response->assertSee('<link rel="icon" type="image/*" href="https://example.com/logo.png">', false);
 
     // Verify view content
     $response->assertSee('RAV4 Hybrid');
