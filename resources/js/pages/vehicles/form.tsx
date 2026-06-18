@@ -15,6 +15,8 @@ interface Store {
     id: number;
     name: string;
     slug: string;
+    currency?: string;
+    usd_exchange_rate?: string | number;
     pivot?: {
         role: string;
     };
@@ -171,7 +173,7 @@ export default function VehicleFormPage({
         model: vehicle ? vehicle.model : '',
         year: vehicle ? vehicle.year : new Date().getFullYear(),
         price: vehicle ? String(vehicle.price) : '',
-        currency: vehicle ? vehicle.currency : 'USD',
+        currency: vehicle ? vehicle.currency : (activeStore?.currency || 'USD'),
         plate: vehicle ? (vehicle.plate || '') : '',
         engine: vehicle ? (vehicle.engine || '') : '',
         suspension: vehicle ? (vehicle.suspension || '') : '',
@@ -424,8 +426,16 @@ export default function VehicleFormPage({
                                         onChange={e => setData('currency', e.target.value)}
                                         className="bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full p-2"
                                     >
-                                        <option value="USD">Dólares (USD)</option>
-                                        <option value="ARS">Pesos (ARS)</option>
+                                        {activeStore?.currency === 'USD' ? (
+                                            <option value="USD">Dólares (USD)</option>
+                                        ) : (
+                                            <>
+                                                <option value={activeStore?.currency || 'ARS'}>
+                                                    {activeStore?.currency === 'ARS' ? 'Pesos (ARS)' : (activeStore?.currency || 'Pesos (ARS)')}
+                                                </option>
+                                                <option value="USD">Dólares (USD)</option>
+                                            </>
+                                        )}
                                     </select>
                                     {errors.currency && <p className="text-xs text-red-500">{errors.currency}</p>}
                                 </div>

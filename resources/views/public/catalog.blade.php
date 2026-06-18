@@ -116,7 +116,7 @@
                 Catálogo Online
             </span>
             <h2 class="text-3xl md:text-4xl font-black mt-2 tracking-tight">{{ $store->name }}</h2>
-            @if($store->address)
+            @if($store->address || $store->city || $store->province)
                 <p class="text-slate-200 mt-1 flex items-center gap-1 text-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-store-secondary"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -124,7 +124,7 @@
                         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                         <circle cx="12" cy="10" r="3" />
                     </svg>
-                    {{ $store->address }}
+                    {{ $store->address }}{{ $store->city ? ', ' . $store->city : '' }}{{ $store->province ? ', ' . $store->province : '' }}
                 </p>
             @endif
         </div>
@@ -384,9 +384,16 @@
 
                                     <div class="flex items-center justify-between border-t border-slate-100 pt-2">
                                         <span class="text-xs text-slate-400 font-semibold">Precio</span>
-                                        <span class="text-lg font-black text-slate-900">
-                                            {{ $formattedPrice }}
-                                        </span>
+                                        <div class="text-right">
+                                            <span class="text-lg font-black text-slate-900 block">
+                                                {{ $formattedPrice }}
+                                            </span>
+                                            @if($vehicle->currency === 'USD' && $store->currency !== 'USD' && $store->usd_exchange_rate > 0)
+                                                <span class="text-[10px] text-slate-500 font-medium block">
+                                                    ({{ ($store->currency === 'ARS' ? '$' : $store->currency) . ' ' . number_format($vehicle->price * $store->usd_exchange_rate, 0, ',', '.') }})
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </a>

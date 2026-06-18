@@ -29,6 +29,10 @@ interface Store {
     phone: string | null;
     email: string | null;
     address: string | null;
+    province: string | null;
+    city: string | null;
+    currency: string;
+    usd_exchange_rate: string | number;
     whatsapp: string | null;
     instagram: string | null;
     facebook: string | null;
@@ -66,6 +70,10 @@ interface StoreForm {
     phone: string;
     email: string;
     address: string;
+    province: string;
+    city: string;
+    currency: string;
+    usd_exchange_rate: string | number;
     whatsapp: string;
     instagram: string;
     facebook: string;
@@ -183,6 +191,10 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
         phone: activeStore.phone || '',
         email: activeStore.email || '',
         address: activeStore.address || '',
+        province: activeStore.province || '',
+        city: activeStore.city || '',
+        currency: activeStore.currency || 'USD',
+        usd_exchange_rate: activeStore.usd_exchange_rate || '1.00',
         whatsapp: activeStore.whatsapp || '',
         instagram: activeStore.instagram || '',
         facebook: activeStore.facebook || '',
@@ -212,6 +224,10 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
             phone: activeStore.phone || '',
             email: activeStore.email || '',
             address: activeStore.address || '',
+            province: activeStore.province || '',
+            city: activeStore.city || '',
+            currency: activeStore.currency || 'USD',
+            usd_exchange_rate: activeStore.usd_exchange_rate || '1.00',
             whatsapp: activeStore.whatsapp || '',
             instagram: activeStore.instagram || '',
             facebook: activeStore.facebook || '',
@@ -496,6 +512,63 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
                                         placeholder="Av. del Libertador 4500, Palermo, CABA"
                                     />
                                     <InputError message={errors.address} />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="province">Provincia (Argentina)</Label>
+                                        <Input
+                                            id="province"
+                                            value={data.province}
+                                            onChange={(e) => setData('province', e.target.value)}
+                                            placeholder="Ej: Buenos Aires"
+                                        />
+                                        <InputError message={errors.province} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="city">Localidad</Label>
+                                        <Input
+                                            id="city"
+                                            value={data.city}
+                                            onChange={(e) => setData('city', e.target.value)}
+                                            placeholder="Ej: San Isidro"
+                                        />
+                                        <InputError message={errors.city} />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-zinc-800/40 rounded-xl border border-slate-200 dark:border-zinc-800/80">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="store-currency">Moneda Principal</Label>
+                                        <select
+                                            id="store-currency"
+                                            value={data.currency}
+                                            onChange={(e) => setData('currency', e.target.value)}
+                                            className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-sm rounded-lg p-2.5 font-medium focus:ring-brand focus:border-brand"
+                                        >
+                                            <option value="USD">Dólares (USD)</option>
+                                            <option value="ARS">Pesos (ARS)</option>
+                                        </select>
+                                        <InputError message={errors.currency} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="usd_exchange_rate" className="flex items-center justify-between">
+                                            <span>Cotización del Dólar</span>
+                                            {data.currency !== 'USD' && (
+                                                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">1 USD = {Number(data.usd_exchange_rate).toLocaleString('es-AR')} {data.currency}</span>
+                                            )}
+                                        </Label>
+                                        <Input
+                                            id="usd_exchange_rate"
+                                            type="number"
+                                            step="0.01"
+                                            value={data.usd_exchange_rate}
+                                            onChange={(e) => setData('usd_exchange_rate', e.target.value)}
+                                            placeholder="Ej: 1000.00"
+                                            disabled={data.currency === 'USD'}
+                                        />
+                                        <InputError message={errors.usd_exchange_rate} />
+                                    </div>
                                 </div>
 
                                 <div className="grid gap-2">

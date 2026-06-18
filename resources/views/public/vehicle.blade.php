@@ -166,9 +166,14 @@
 
                     <div class="text-left sm:text-right shrink-0">
                         <span class="text-xs text-slate-400 font-semibold block">Precio de Lista</span>
-                        <span class="text-3xl font-black text-indigo-950 leading-none" style="color: var(--store-primary)">
+                        <span class="text-3xl font-black text-indigo-950 leading-none block" style="color: var(--store-primary)">
                             {{ $formattedPrice }}
                         </span>
+                        @if($vehicle->currency === 'USD' && $store->currency !== 'USD' && $store->usd_exchange_rate > 0)
+                            <span class="text-xs font-semibold text-slate-500 block mt-1">
+                                ({{ ($store->currency === 'ARS' ? '$' : $store->currency) . ' ' . number_format($vehicle->price * $store->usd_exchange_rate, 0, ',', '.') }})
+                            </span>
+                        @endif
                     </div>
                 </div>
 

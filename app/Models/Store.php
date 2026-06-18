@@ -35,6 +35,8 @@ class Store extends Model
         'presentation',
         'working_hours',
         'map_iframe',
+        'currency',
+        'usd_exchange_rate',
         'meta_title',
         'meta_description',
     ];
@@ -46,6 +48,7 @@ class Store extends Model
      */
     protected $casts = [
         'working_hours' => 'array',
+        'usd_exchange_rate' => 'decimal:2',
     ];
 
     /**

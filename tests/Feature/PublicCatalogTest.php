@@ -171,3 +171,64 @@ test('returns 404 for non-existent store or vehicle', function () {
     // Valid store but non-existent vehicle gives 404
     $this->get('/concesionario/norte/9999')->assertStatus(404);
 });
+
+test('public catalog displays store city and province and converts USD price when store currency is ARS', function () {
+    $plan = Plan::create([
+        'name' => 'Plan Premium',
+        'slug' => 'premium',
+        'price' => 4500,
+        'currency' => 'ARS',
+        'billing_period' => 'monthly',
+        'trial_days' => 90,
+    ]);
+
+    $store = Store::create([
+        'name' => 'Auto Showroom Oeste',
+        'slug' => 'oeste',
+        'phone' => '123456789',
+        'province' => 'Mendoza',
+        'city' => 'San Rafael',
+        'address' => 'Av. Mitre 500',
+        'currency' => 'ARS',
+        'usd_exchange_rate' => 1000.00,
+    ]);
+
+    Subscription::create([
+        'store_id' => $store->id,
+        'plan_id' => $plan->id,
+        'status' => 'trialing',
+        'trial_ends_at' => now()->addDays(90),
+    ]);
+
+    $type = VehicleType::create(['name' => 'SUV', 'slug' => 'suv']);
+    $mark = VehicleMark::create(['name' => 'Toyota', 'slug' => 'toyota']);
+
+    $vehicle = Vehicle::create([
+        'store_id' => $store->id,
+        'vehicle_type_id' => $type->id,
+        'vehicle_mark_id' => $mark->id,
+        'model' => 'RAV4',
+        'year' => 2022,
+        'price' => 15000, // USD 15,000
+        'status' => 'available',
+        'currency' => 'USD',
+    ]);
+
+    // Request the catalog index
+    $response = $this->get('/concesionario/oeste');
+    $response->assertStatus(200);
+
+    // Verify address with city and province is displayed on banner
+    $response->assertSee('Av. Mitre 500, San Rafael, Mendoza');
+
+    // Verify USD price and the converted ARS price ($ 15.000.000) is displayed
+    $response->assertSee('US$ 15.000');
+    $response->assertSee('($ 15.000.000)');
+
+    // Request the vehicle details view
+    $responseDetail = $this->get('/concesionario/oeste/' . $vehicle->id);
+    $responseDetail->assertStatus(200);
+    $responseDetail->assertSee('US$ 15.000');
+    $responseDetail->assertSee('($ 15.000.000)');
+});
+
