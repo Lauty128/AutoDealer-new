@@ -39,7 +39,7 @@ export function AppSidebar() {
     if (activeStore) {
         mainNavItems.push({
             title: 'Catálogo Público',
-            url: `/concesionario/${activeStore.id}`,
+            url: `/concesionario/${activeStore.slug || activeStore.id}`,
             icon: Globe,
         });
     }

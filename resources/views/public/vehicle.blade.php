@@ -75,7 +75,7 @@
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-xs">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <a href="{{ route('public.catalog', $store->id) }}" class="flex items-center gap-3">
+                <a href="{{ route('public.catalog', $store->slug) }}" class="flex items-center gap-3">
                     @if($store->logo)
                         <img src="{{ $store->logo }}" alt="{{ $store->name }}" class="h-10 w-10 rounded-lg object-cover border border-slate-200" />
                     @else
@@ -105,7 +105,7 @@
         
         <!-- Back Link and Navigation -->
         <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-            <a href="{{ route('public.catalog', $store->id) }}" 
+            <a href="{{ route('public.catalog', $store->slug) }}" 
                class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 p-2 rounded-xl transition-all shadow-xs flex items-center gap-1.5 text-xs font-bold shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 Volver al catálogo
@@ -263,7 +263,7 @@
                         </a>
                     @endif
                     
-                    <a href="{{ route('public.catalog', $store->id) }}" 
+                    <a href="{{ route('public.catalog', $store->slug) }}" 
                        class="border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold px-6 py-3.5 rounded-xl transition-colors text-center text-xs flex items-center justify-center">
                         Cerrar y volver
                     </a>

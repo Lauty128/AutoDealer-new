@@ -172,7 +172,7 @@
                 <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     Filtrar Stock
                 </h3>
-                <form action="{{ route('public.catalog', $store->id) }}" method="GET" class="space-y-4 text-sm">
+                <form action="{{ route('public.catalog', $store->slug) }}" method="GET" class="space-y-4 text-sm">
                     <div class="space-y-1">
                         <label for="search" class="text-xs font-semibold text-slate-500 uppercase">Modelo</label>
                         <div class="relative">
@@ -221,7 +221,7 @@
                             Buscar
                         </button>
                         @if(request('search') || request('vehicle_type_id') || request('vehicle_mark_id'))
-                            <a href="{{ route('public.catalog', $store->id) }}"
+                            <a href="{{ route('public.catalog', $store->slug) }}"
                                 class="border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs px-3 py-2 rounded-lg shrink-0 flex items-center justify-center">
                                 Limpiar
                             </a>
@@ -309,7 +309,7 @@
                                     ? number_format($vehicle->mileage, 0, ',', '.') . ' km'
                                     : 'N/A';
                             @endphp
-                            <a href="{{ route('public.catalog', [$store->id, $vehicle->id]) }}"
+                            <a href="{{ route('public.catalog', [$store->slug, $vehicle->slug]) }}"
                                 class="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col group">
 
                                 <!-- Cover Image -->

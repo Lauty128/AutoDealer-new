@@ -39,6 +39,7 @@ interface Vehicle {
     id: number;
     store_id: number;
     model: string;
+    slug: string;
     year: number;
     price: number;
     currency: string;

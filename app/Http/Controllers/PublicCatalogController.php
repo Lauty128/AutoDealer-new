@@ -15,10 +15,10 @@ class PublicCatalogController extends Controller
     /**
      * Display the public digital catalog of a store.
      */
-    public function show(Request $request, $storeId, $vehicleId = null)
+    public function show(Request $request, $storeSlug, $vehicleSlug = null)
     {
         // Find store by ID or slug
-        $store = Store::where('id', $storeId)->orWhere('slug', $storeId)->with('services')->firstOrFail();
+        $store = Store::where('slug', $storeSlug)->orWhere('id', $storeSlug)->with('services')->firstOrFail();
 
         // Build vehicle query
         $query = Vehicle::with(['type', 'mark', 'details', 'images'])
@@ -58,11 +58,15 @@ class PublicCatalogController extends Controller
 
         $templates = $storeTemplates->concat($systemTemplates);
 
-        // If a specific vehicle ID is provided in the route, we render the details view
-        if ($vehicleId) {
+        // If a specific vehicle slug or ID is provided in the route, we render the details view
+        if ($vehicleSlug) {
             $vehicle = Vehicle::with(['type', 'mark', 'details', 'images'])
                 ->where('store_id', $store->id)
-                ->findOrFail($vehicleId);
+                ->where(function ($query) use ($vehicleSlug) {
+                    $query->where('slug', $vehicleSlug)
+                          ->orWhere('id', $vehicleSlug);
+                })
+                ->firstOrFail();
 
             return view('public.vehicle', [
                 'store' => $store,

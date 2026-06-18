@@ -133,8 +133,12 @@ test('public vehicle details displays specific vehicle information and SEO tags'
         'value' => 'Panorámico corredizo',
     ]);
 
-    $response = $this->get('/concesionario/norte/' . $vehicle->id);
+    $response = $this->get('/concesionario/norte/' . $vehicle->slug);
     $response->assertStatus(200);
+
+    // Verify fallback using numeric ID still works
+    $responseFallback = $this->get('/concesionario/' . $store->id . '/' . $vehicle->id);
+    $responseFallback->assertStatus(200);
     $response->assertSee('<link rel="icon" type="image/*" href="https://example.com/logo.png">', false);
 
     // Verify view content
@@ -235,8 +239,8 @@ test('public catalog displays store city and province and converts USD price whe
     $response->assertSee('US$ 15.000');
     $response->assertSee('($ 15.000.000)');
 
-    // Request the vehicle details view
-    $responseDetail = $this->get('/concesionario/oeste/' . $vehicle->id);
+    // Request the vehicle details view using slug
+    $responseDetail = $this->get('/concesionario/oeste/' . $vehicle->slug);
     $responseDetail->assertStatus(200);
     $responseDetail->assertSee('US$ 15.000');
     $responseDetail->assertSee('($ 15.000.000)');

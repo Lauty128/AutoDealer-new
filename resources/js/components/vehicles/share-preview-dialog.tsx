@@ -22,6 +22,7 @@ interface Vehicle {
     id: number;
     store_id: number;
     model: string;
+    slug: string;
     year: number;
     price: number;
     currency: string;
@@ -68,8 +69,8 @@ export function SharePreviewDialog({ vehicle, store, isOpen, onClose }: SharePre
     if (!vehicle || !store) return null;
 
     const publicUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/concesionario/${store.id}/${vehicle.id}`
-        : `/concesionario/${store.id}/${vehicle.id}`;
+        ? `${window.location.origin}/concesionario/${store.slug || store.id}/${vehicle.slug || vehicle.id}`
+        : `/concesionario/${store.slug || store.id}/${vehicle.slug || vehicle.id}`;
 
     const handleCopyLink = async () => {
         try {

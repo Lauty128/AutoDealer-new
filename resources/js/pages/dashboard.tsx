@@ -58,6 +58,7 @@ interface VehicleImage {
 interface Vehicle {
     id: number;
     model: string;
+    slug: string;
     year: number;
     price: number;
     currency: string;
@@ -236,7 +237,7 @@ export default function Dashboard({
                                 </h2>
                                 {activeStore && (
                                     <a 
-                                        href={route('public.catalog', activeStore.id)} 
+                                        href={route('public.catalog', activeStore.slug)} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
                                         title="Ver Catálogo Digital Público"
