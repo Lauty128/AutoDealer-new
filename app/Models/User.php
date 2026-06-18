@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\AdminNewUserRegisteredNotification;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -85,5 +88,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification());
+
+        // Notify admin about the new registration
+        try {
+            Notification::route('mail', 'lautarosilverii@gmail.com')
+                ->notify(new AdminNewUserRegisteredNotification($this));
+        } catch (\Exception $e) {
+            Log::error('Error notifying admin of user registration: ' . $e->getMessage());
+        }
     }
 }
