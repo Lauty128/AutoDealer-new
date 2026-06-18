@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\Plan;
 use App\Models\Store;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Models\VehicleFuel;
 use App\Models\VehicleMark;
@@ -270,7 +272,21 @@ class AdminSettingsController extends Controller implements HasMiddleware
             'address' => 'nullable|string|max:255',
         ]);
 
-        Store::create($validated);
+        $store = Store::create($validated);
+
+        // Assign default trialing subscription
+        $defaultPlan = Plan::where('is_default', true)->where('is_active', true)->first()
+            ?? Plan::where('slug', 'premium')->first();
+
+        if ($defaultPlan) {
+            Subscription::create([
+                'store_id' => $store->id,
+                'plan_id' => $defaultPlan->id,
+                'status' => 'trialing',
+                'trial_ends_at' => now()->addDays($defaultPlan->trial_days),
+                'starts_at' => now(),
+            ]);
+        }
 
         return back()->with([
             'status' => 'success',
