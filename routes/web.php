@@ -4,13 +4,13 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminFuelController;
 use App\Http\Controllers\Admin\AdminMarkController;
+use App\Http\Controllers\Admin\AdminPlanController;
 use App\Http\Controllers\Admin\AdminStoreController;
+use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminTemplateController;
 use App\Http\Controllers\Admin\AdminTypeController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminVehicleController;
-use App\Http\Controllers\Admin\AdminPlanController;
-use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MercadoPagoWebhookController;
@@ -27,6 +27,10 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::get('politicas-de-privacidad', function () {
+    return view('privacy-policy');
+})->name('privacy.policy');
 
 // Public Digital Catalog Showroom
 Route::get('concesionario/{store}/{vehicle?}', [PublicCatalogController::class, 'show'])

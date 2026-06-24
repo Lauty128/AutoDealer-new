@@ -740,6 +740,7 @@
                     <a href="#features" class="hover:text-slate-800 dark:hover:text-zinc-300">Características</a>
                     <a href="#preview" class="hover:text-slate-800 dark:hover:text-zinc-300">Vista Previa</a>
                     <a href="#pricing" class="hover:text-slate-800 dark:hover:text-zinc-300">Precios</a>
+                    <a href="{{ route('privacy.policy') }}" class="hover:text-slate-800 dark:hover:text-zinc-300">Políticas de Privacidad</a>
                 </div>
                 <p class="text-center text-xs text-slate-400 dark:text-zinc-600">
                     &copy; <script>document.write(new Date().getFullYear())</script> AutoDealer. Todos los derechos reservados.
