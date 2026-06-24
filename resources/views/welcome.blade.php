@@ -617,7 +617,7 @@
                         <p class="mt-2 text-xs text-slate-500 dark:text-zinc-400">Acceso total para potenciar las ventas de tu agencia</p>
                         
                         <div class="mt-6 flex items-baseline">
-                            <span class="text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">$4.500</span>
+                            <span class="text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">$16.000</span>
                             <span class="text-lg font-semibold text-slate-400 ml-1">ARS/mes</span>
                         </div>
                         
