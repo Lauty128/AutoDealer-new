@@ -64,10 +64,10 @@ test('public catalog lists vehicles and allows filter options without authentica
     ]);
 
     // Request using Store ID
-    $response = $this->get('/concesionario/' . $store->id);
+    $response = $this->get('/concesionario/'.$store->id);
     $response->assertStatus(200);
     $response->assertSee('Auto Showroom Norte');
-    $response->assertSee('href="' . asset('favicon.ico') . '"', false);
+    $response->assertSee('href="'.asset('favicon.ico').'"', false);
     $response->assertSee('El mejor concesionario de la zona norte.');
     $response->assertSee('RAV4');
     $response->assertSee('SW4');
@@ -133,11 +133,11 @@ test('public vehicle details displays specific vehicle information and SEO tags'
         'value' => 'Panorámico corredizo',
     ]);
 
-    $response = $this->get('/concesionario/norte/' . $vehicle->slug);
+    $response = $this->get('/concesionario/norte/'.$vehicle->slug);
     $response->assertStatus(200);
 
     // Verify fallback using numeric ID still works
-    $responseFallback = $this->get('/concesionario/' . $store->id . '/' . $vehicle->id);
+    $responseFallback = $this->get('/concesionario/'.$store->id.'/'.$vehicle->id);
     $responseFallback->assertStatus(200);
     $response->assertSee('<link rel="icon" type="image/*" href="https://example.com/logo.png">', false);
 
@@ -154,7 +154,7 @@ test('public vehicle details displays specific vehicle information and SEO tags'
     // Verify SEO Meta Tags are present in the HTML (Server-Side Rendered)
     $response->assertSee('<meta name="description" content="Ficha técnica de Toyota RAV4 Hybrid año 2022. Kilometraje: 12.000 km. Combustible: nafta. Precio: US$ 45.000 en Auto Showroom Norte.">', false);
     $response->assertSee('<meta property="og:title" content="Toyota RAV4 Hybrid (2022)">', false);
-    $response->assertSee('<meta property="og:url" content="' . url()->current() . '">', false);
+    $response->assertSee('<meta property="og:url" content="'.url('/concesionario/norte/'.$vehicle->slug).'">', false);
 });
 
 test('returns 404 for non-existent store or vehicle', function () {
@@ -240,9 +240,17 @@ test('public catalog displays store city and province and converts USD price whe
     $response->assertSee('($ 15.000.000)');
 
     // Request the vehicle details view using slug
-    $responseDetail = $this->get('/concesionario/oeste/' . $vehicle->slug);
+    $responseDetail = $this->get('/concesionario/oeste/'.$vehicle->slug);
     $responseDetail->assertStatus(200);
     $responseDetail->assertSee('US$ 15.000');
     $responseDetail->assertSee('($ 15.000.000)');
 });
 
+test('privacy policy page is accessible publicly and contains meta data deletion instructions', function () {
+    $response = $this->get('/politicas-de-privacidad');
+
+    $response->assertStatus(200);
+    $response->assertSee('Políticas de Privacidad y Condiciones de Uso');
+    $response->assertSee('Eliminación de Datos de Meta y Facebook');
+    $response->assertSee('administracion@autodealer.com.ar');
+});

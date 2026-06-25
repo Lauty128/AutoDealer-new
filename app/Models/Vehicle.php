@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Vehicle extends Model
 {
@@ -31,6 +32,8 @@ class Vehicle extends Model
         'description',
         'status',
         'cost_price',
+        'mercadolibre_id',
+        'whatsapp_id',
     ];
 
     /**
@@ -53,11 +56,11 @@ class Vehicle extends Model
     public function generateSlug()
     {
         $brandName = $this->mark ? $this->mark->name : '';
-        if (!$brandName && $this->vehicle_mark_id) {
+        if (! $brandName && $this->vehicle_mark_id) {
             $brandName = VehicleMark::find($this->vehicle_mark_id)?->name ?? '';
         }
 
-        $baseSlug = \Illuminate\Support\Str::slug($brandName . ' ' . $this->model . ' ' . $this->year);
+        $baseSlug = Str::slug($brandName.' '.$this->model.' '.$this->year);
         if (empty($baseSlug)) {
             $baseSlug = 'vehiculo';
         }
@@ -69,7 +72,7 @@ class Vehicle extends Model
             ->where('slug', $slug)
             ->where('id', '!=', $this->id)
             ->exists()) {
-            $slug = $baseSlug . '-' . $counter++;
+            $slug = $baseSlug.'-'.$counter++;
         }
 
         $this->slug = $slug;
