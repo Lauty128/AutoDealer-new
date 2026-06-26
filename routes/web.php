@@ -173,3 +173,37 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+// Route for remote deployment and optimization (Token-protected)
+Route::match(['get', 'post'], 'deploy/{token}', function ($token) {
+    $secureToken = env('DEPLOY_TOKEN');
+    
+    if (empty($secureToken) || $token !== $secureToken) {
+        abort(403, 'Acceso denegado. Token inválido.');
+    }
+    
+    try {
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:cache');
+        \Illuminate\Support\Facades\Artisan::call('route:cache');
+        \Illuminate\Support\Facades\Artisan::call('view:cache');
+        \Illuminate\Support\Facades\Artisan::call('queue:restart');
+        
+        // Opcional: Ejecutar migraciones pendientes si las hay
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Despliegue, caché y migraciones completados con éxito.',
+            'details' => $output
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Error durante el despliegue: ' . $e->getMessage()
+        ], 500);
+    }
+})->name('deploy.system');
