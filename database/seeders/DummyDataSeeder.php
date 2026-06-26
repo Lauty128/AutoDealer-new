@@ -22,18 +22,7 @@ class DummyDataSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Create Default User
-        $user = User::updateOrCreate(
-            ['email' => 'lautarosilverii@gmail.com'],
-            [
-                'name' => 'Admin AutoDealer',
-                'password' => Hash::make('12345'),
-                'is_superadmin' => true,
-                'email_verified_at' => '2026-06-25'
-            ]
-        );
-
-        // 2. Create Stores
+        // 1. Create Stores
         $storeHq = Store::updateOrCreate(
             ['slug' => 'autodealer-hq'],
             [
@@ -110,12 +99,6 @@ class DummyDataSeeder extends Seeder
                 ['description' => $srv['description'], 'icon' => $srv['icon']]
             );
         }
-
-        // Associate user with stores
-        $user->stores()->syncWithoutDetaching([
-            $storeHq->id => ['role' => 'owner'],
-            $storeNorte->id => ['role' => 'manager'],
-        ]);
 
         // Add subscriptions
         $plan = Plan::where('slug', 'premium')->first();
