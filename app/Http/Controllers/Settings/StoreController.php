@@ -53,6 +53,7 @@ class StoreController extends Controller
                 ];
             })->values(),
             'activeStore' => $activeStore,
+            'support_whatsapp' => config('services.autodealer.support_num', '5491123456789'),
             'status' => $request->session()->get('status'),
             'message' => $request->session()->get('message'),
         ]);

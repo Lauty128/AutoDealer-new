@@ -39,6 +39,8 @@ class Store extends Model
         'usd_exchange_rate',
         'meta_title',
         'meta_description',
+        'whatsapp_phone_number_id',
+        'whatsapp_catalog_id',
     ];
 
     /**

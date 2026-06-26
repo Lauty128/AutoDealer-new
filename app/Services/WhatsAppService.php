@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Store;
 use App\Models\Vehicle;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
@@ -14,22 +16,71 @@ class WhatsAppService
      */
     public function createCatalogItem(Vehicle $vehicle): ?string
     {
+        $store = $vehicle->store ?: $vehicle->load('store')->store;
+        $catalogId = $store?->whatsapp_catalog_id;
+        $accessToken = config('services.meta.access_token');
+
+        if (empty($catalogId) || empty($accessToken)) {
+            Log::warning('WhatsAppService: Missing Meta catalog configuration for store ' . $vehicle->store_id);
+            return null;
+        }
+
         Log::info('WhatsAppService: Creating catalog item for vehicle', [
             'vehicle_id' => $vehicle->id,
             'store_id' => $vehicle->store_id,
             'model' => $vehicle->model,
         ]);
 
-        // Place mock integration or real API call here in the future
-        // For now, we return a mock WhatsApp ID prefix 'WA-' followed by vehicle ID
-        $mockExternalId = 'WA-'.$vehicle->id.rand(1000, 9999);
+        // Obtener datos del vehiculo
+        $brand = $vehicle->mark ? $vehicle->mark->name : 'Genérico';
+        $title = $brand . ' ' . $vehicle->model . ' ' . $vehicle->year;
+        $description = "Vehículo {$brand} {$vehicle->model} año {$vehicle->year} en excelentes condiciones.";
+        
+        $priceFormatted = number_format($vehicle->price, 2, '.', '') . ' ' . $vehicle->currency;
+        $availability = $vehicle->status === 'available' ? 'in stock' : 'out of stock';
 
-        Log::info('WhatsAppService: Catalog item created successfully', [
+        $link = $vehicle->store ? route('public.catalog', [$vehicle->store->slug, $vehicle->slug]) : url('/');
+        $imageLink = $vehicle->cover_image ? (str_starts_with($vehicle->cover_image, 'http') ? $vehicle->cover_image : url($vehicle->cover_image)) : 'https://placehold.co/600x400?text=No+Image';
+
+        $retailerId = 'vehicle_' . $vehicle->id;
+
+        $response = Http::withToken($accessToken)
+            ->post("https://graph.facebook.com/v18.0/{$catalogId}/items_batch", [
+                'item_type' => 'PRODUCT_ITEM',
+                'requests' => [
+                    [
+                        'method' => 'CREATE',
+                        'retailer_id' => $retailerId,
+                        'data' => [
+                            'title' => $title,
+                            'description' => $description,
+                            'availability' => $availability,
+                            'condition' => 'used',
+                            'price' => $priceFormatted,
+                            'link' => $link,
+                            'image_link' => $imageLink,
+                            'brand' => $brand,
+                        ],
+                    ],
+                ],
+            ]);
+
+        if ($response->successful()) {
+            Log::info('WhatsAppService: Catalog item created successfully', [
+                'vehicle_id' => $vehicle->id,
+                'external_id' => $retailerId,
+            ]);
+
+            return $retailerId;
+        }
+
+        Log::error('WhatsAppService: Failed to create catalog item', [
             'vehicle_id' => $vehicle->id,
-            'external_id' => $mockExternalId,
+            'status' => $response->status(),
+            'response' => $response->json(),
         ]);
 
-        return $mockExternalId;
+        return null;
     }
 
     /**
@@ -47,15 +98,63 @@ class WhatsAppService
             return false;
         }
 
+        $store = $vehicle->store ?: $vehicle->load('store')->store;
+        $catalogId = $store?->whatsapp_catalog_id;
+        $accessToken = config('services.meta.access_token');
+
+        if (empty($catalogId) || empty($accessToken)) {
+            Log::warning('WhatsAppService: Missing Meta catalog configuration for store ' . $vehicle->store_id);
+            return false;
+        }
+
         Log::info('WhatsAppService: Updating catalog item for vehicle', [
             'vehicle_id' => $vehicle->id,
             'external_id' => $vehicle->whatsapp_id,
             'price' => $vehicle->price,
         ]);
 
-        // Place mock integration or real API call here in the future
+        $brand = $vehicle->mark ? $vehicle->mark->name : 'Genérico';
+        $title = $brand . ' ' . $vehicle->model . ' ' . $vehicle->year;
+        $description = $vehicle->description ?: "Vehículo {$brand} {$vehicle->model} año {$vehicle->year} en excelentes condiciones.";
+        
+        $priceFormatted = number_format($vehicle->price, 2, '.', '') . ' ' . $vehicle->currency;
+        $availability = $vehicle->status === 'available' ? 'in stock' : 'out of stock';
 
-        return true;
+        $link = $vehicle->store ? route('public.catalog', [$vehicle->store->slug, $vehicle->slug]) : url('/');
+        $imageLink = $vehicle->cover_image ? (str_starts_with($vehicle->cover_image, 'http') ? $vehicle->cover_image : url($vehicle->cover_image)) : 'https://placehold.co/600x400?text=No+Image';
+
+        $response = Http::withToken($accessToken)
+            ->post("https://graph.facebook.com/v18.0/{$catalogId}/items_batch", [
+                'item_type' => 'PRODUCT_ITEM',
+                'requests' => [
+                    [
+                        'method' => 'UPDATE',
+                        'retailer_id' => $vehicle->whatsapp_id,
+                        'data' => [
+                            'title' => $title,
+                            'description' => $description,
+                            'availability' => $availability,
+                            'condition' => 'used',
+                            'price' => $priceFormatted,
+                            'link' => $link,
+                            'image_link' => $imageLink,
+                            'brand' => $brand,
+                        ],
+                    ],
+                ],
+            ]);
+
+        if ($response->successful()) {
+            return true;
+        }
+
+        Log::error('WhatsAppService: Failed to update catalog item', [
+            'vehicle_id' => $vehicle->id,
+            'status' => $response->status(),
+            'response' => $response->json(),
+        ]);
+
+        return false;
     }
 
     /**
@@ -65,13 +164,41 @@ class WhatsAppService
      */
     public function deleteCatalogItem(string $externalId, int $storeId): bool
     {
+        $store = Store::find($storeId);
+        $catalogId = $store?->whatsapp_catalog_id;
+        $accessToken = config('services.meta.access_token');
+
+        if (empty($catalogId) || empty($accessToken)) {
+            Log::warning('WhatsAppService: Missing Meta catalog configuration for store ' . $storeId);
+            return false;
+        }
+
         Log::info('WhatsAppService: Deleting catalog item', [
             'external_id' => $externalId,
             'store_id' => $storeId,
         ]);
 
-        // Place mock integration or real API call here in the future
+        $response = Http::withToken($accessToken)
+            ->post("https://graph.facebook.com/v18.0/{$catalogId}/items_batch", [
+                'item_type' => 'PRODUCT_ITEM',
+                'requests' => [
+                    [
+                        'method' => 'DELETE',
+                        'retailer_id' => $externalId,
+                    ],
+                ],
+            ]);
 
-        return true;
+        if ($response->successful()) {
+            return true;
+        }
+
+        Log::error('WhatsAppService: Failed to delete catalog item', [
+            'external_id' => $externalId,
+            'status' => $response->status(),
+            'response' => $response->json(),
+        ]);
+
+        return false;
     }
 }

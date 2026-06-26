@@ -41,4 +41,15 @@ return [
         'sandbox' => env('MERCADOPAGO_SANDBOX', true),
     ],
 
+    'autodealer' => [
+        'support_num' => env('AUTODEALER_SUPPORT_INTEGRATIONS', '5491123456789'),
+    ],
+
+    'meta' => [
+        'access_token' => env('META_ACCESS_TOKEN'),
+        'catalog_id' => env('META_CATALOG_ID'),
+        'waba_id' => env('META_WABA_ID'),
+        'business_id' => env('META_BUSINESS_ID'),
+    ],
+
 ];

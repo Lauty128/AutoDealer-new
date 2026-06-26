@@ -123,6 +123,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('stores/{id}/impersonate', [AdminStoreController::class, 'impersonate'])->name('stores.impersonate');
         Route::post('stores/{id}', [AdminStoreController::class, 'update'])->name('stores.update');
         Route::delete('stores/{id}', [AdminStoreController::class, 'destroy'])->name('stores.destroy');
+        Route::post('stores/{id}/whatsapp/request-code', [AdminStoreController::class, 'requestVerificationCode'])->name('stores.whatsapp.requestCode');
+        Route::post('stores/{id}/whatsapp/verify-register', [AdminStoreController::class, 'verifyAndRegister'])->name('stores.whatsapp.verifyRegister');
 
         // Templates CRUD
         Route::get('stores/{storeId}/templates', [AdminTemplateController::class, 'storeTemplates'])->name('stores.templates');

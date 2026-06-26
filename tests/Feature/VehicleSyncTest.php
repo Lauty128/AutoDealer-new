@@ -11,6 +11,7 @@ use App\Models\VehicleType;
 use App\Services\MercadoLibreService;
 use App\Services\WhatsAppService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
@@ -31,6 +32,8 @@ test('creating, updating, and deleting a vehicle dispatches synchronization jobs
         'name' => 'Test Store',
         'slug' => 'test-store',
         'phone' => '123456789',
+        'whatsapp_phone_number_id' => '123456789',
+        'whatsapp_catalog_id' => '123456',
     ]);
 
     Subscription::create([
@@ -161,6 +164,8 @@ test('SyncVehicleToWhatsApp job invokes WhatsAppService correctly on creation', 
         'name' => 'Test Store',
         'slug' => 'test-store',
         'phone' => '123456789',
+        'whatsapp_phone_number_id' => '123456789',
+        'whatsapp_catalog_id' => '123456',
     ]);
 
     Subscription::create([
@@ -197,4 +202,47 @@ test('SyncVehicleToWhatsApp job invokes WhatsAppService correctly on creation', 
 
     $vehicle->refresh();
     expect($vehicle->whatsapp_id)->toBe('WA-MOCK123');
+});
+
+test('WhatsAppService calls Meta Graph API to create a catalog item', function () {
+    Http::fake([
+        'https://graph.facebook.com/*' => Http::response(['success' => true], 200),
+    ]);
+
+    config(['services.meta.catalog_id' => '123456']);
+    config(['services.meta.access_token' => 'meta-token-xyz']);
+
+    $store = Store::create([
+        'name' => 'Test Store',
+        'slug' => 'test-store',
+        'phone' => '123456789',
+        'whatsapp_phone_number_id' => '98765',
+        'whatsapp_catalog_id' => '123456',
+    ]);
+
+    $type = VehicleType::create(['name' => 'SUV', 'slug' => 'suv']);
+    $mark = VehicleMark::create(['name' => 'Toyota', 'slug' => 'toyota']);
+
+    $vehicle = Vehicle::create([
+        'store_id' => $store->id,
+        'vehicle_type_id' => $type->id,
+        'vehicle_mark_id' => $mark->id,
+        'model' => 'Corolla Cross',
+        'year' => 2024,
+        'price' => 35000,
+        'status' => 'available',
+        'currency' => 'USD',
+    ]);
+
+    $service = new WhatsAppService();
+    $result = $service->createCatalogItem($vehicle);
+
+    expect($result)->toBe('vehicle_' . $vehicle->id);
+
+    Http::assertSent(function (\Illuminate\Http\Client\Request $request) use ($vehicle) {
+        return $request->url() === 'https://graph.facebook.com/v18.0/123456/items_batch' &&
+            $request->method() === 'POST' &&
+            $request['requests'][0]['method'] === 'CREATE' &&
+            $request['requests'][0]['data']['title'] === 'Toyota Corolla Cross 2024';
+    });
 });

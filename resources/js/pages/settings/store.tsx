@@ -10,7 +10,7 @@ import { Transition } from '@headlessui/react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { 
     Building2, Share2, Image as ImageIcon, Clock, Sparkles, Palette, 
-    FileText, Plus, Trash2, Globe, Eye, ShieldAlert
+    FileText, Plus, Trash2, Globe, Eye, ShieldAlert, Link, ExternalLink
 } from 'lucide-react';
 import { FormEventHandler, useRef, useEffect, useState } from 'react';
 
@@ -48,6 +48,8 @@ interface Store {
     map_iframe: string | null;
     meta_title: string | null;
     meta_description: string | null;
+    whatsapp_phone_number_id: string | null;
+    whatsapp_catalog_id: string | null;
     services: StoreService[];
 }
 
@@ -59,6 +61,7 @@ interface StoreSelectorItem {
 interface StoreProps {
     stores: StoreSelectorItem[];
     activeStore: Store | null;
+    support_whatsapp: string;
     status?: string;
     message?: string;
 }
@@ -150,8 +153,8 @@ function RichTextEditor({ value, onChange }: { value: string; onChange: (val: st
     );
 }
 
-export default function StoreSettings({ stores, activeStore, status, message }: StoreProps) {
-    const [activeTab, setActiveTab] = useState<'general' | 'social' | 'images' | 'services' | 'hours' | 'design'>('general');
+export default function StoreSettings({ stores, activeStore, support_whatsapp, status, message }: StoreProps) {
+    const [activeTab, setActiveTab] = useState<'general' | 'social' | 'images' | 'services' | 'hours' | 'design' | 'integrations'>('general');
     const { auth } = usePage<SharedData>().props;
     const isSuperAdmin = auth.user.is_superadmin === true || auth.user.is_superadmin === 1;
     
@@ -445,6 +448,18 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
                         >
                             <Palette className="h-3.5 w-3.5" />
                             Diseño & SEO
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('integrations')}
+                            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-colors ${
+                                activeTab === 'integrations'
+                                    ? 'border-brand text-brand'
+                                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'
+                            }`}
+                        >
+                            <Link className="h-3.5 w-3.5" />
+                            Integraciones (Meta / WA)
                         </button>
                     </div>
 
@@ -939,6 +954,95 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
                                 </div>
                             </div>
                         )}
+
+                        {/* Tab Content 7: Integraciones */}
+                        {activeTab === 'integrations' && (() => {
+                            const isConfigured = !!(activeStore.whatsapp_phone_number_id && activeStore.whatsapp_catalog_id);
+                            const maskValue = (val: string | null) => {
+                                if (!val) return 'No configurado';
+                                return val.length > 4 ? `*****${val.substring(val.length - 4)}` : val;
+                            };
+
+                            const whatsappMessage = encodeURIComponent(`Hola AutoDealer, me gustaría configurar la integración de WhatsApp para mi concesionario *${activeStore.name}* (ID: ${activeStore.id}).`);
+                            const whatsappUrl = `https://wa.me/${support_whatsapp}?text=${whatsappMessage}`;
+
+                            return (
+                                <div className="space-y-6">
+                                    {/* Status Card */}
+                                    <div className={`p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+                                        isConfigured 
+                                            ? 'bg-emerald-50/50 dark:bg-emerald-950/10 border-emerald-200 dark:border-emerald-900/30' 
+                                            : 'bg-slate-50 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-800'
+                                    }`}>
+                                        <div className="space-y-1">
+                                            <div className="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Estado de la Conexión</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`h-2.5 w-2.5 rounded-full ${isConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-zinc-700'}`} />
+                                                <span className="font-bold text-slate-800 dark:text-zinc-200">
+                                                    {isConfigured ? 'Catálogo Sincronizado en Segundo Plano' : 'Integración WhatsApp Inactiva'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed max-w-xl">
+                                                {isConfigured 
+                                                    ? '¡Excelente! Tu catálogo de vehículos ya está integrado con WhatsApp. Cualquier alta, modificación o baja de tus vehículos se reflejará automáticamente en tu catálogo de WhatsApp.' 
+                                                    : 'Para habilitar la sincronización en segundo plano de tus vehículos en el catálogo de WhatsApp, ponte en contacto con nuestro equipo de soporte técnico para realizar la vinculación.'
+                                                }
+                                            </p>
+                                        </div>
+                                        {isConfigured && (
+                                            <span className="self-start sm:self-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30 flex items-center gap-1">
+                                                Activo
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Integration Metadata Info */}
+                                    {isConfigured && (
+                                        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-4 space-y-3">
+                                            <h4 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Credenciales de Integración</h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                                <div className="flex justify-between border-b border-slate-100 dark:border-zinc-800/80 pb-2 sm:border-0 sm:pb-0">
+                                                    <span className="font-medium text-slate-500 dark:text-zinc-400">ID de Teléfono WhatsApp:</span>
+                                                    <span className="font-mono text-slate-800 dark:text-zinc-300">{maskValue(activeStore.whatsapp_phone_number_id)}</span>
+                                                </div>
+                                                <div className="flex justify-between border-b border-slate-100 dark:border-zinc-800/80 pb-2 sm:border-0 sm:pb-0">
+                                                    <span className="font-medium text-slate-500 dark:text-zinc-400">ID de Catálogo:</span>
+                                                    <span className="font-mono text-slate-800 dark:text-zinc-300">{maskValue(activeStore.whatsapp_catalog_id)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Action Card */}
+                                    <div className="bg-emerald-500/5 dark:bg-emerald-500/[0.02] border border-emerald-500/20 rounded-2xl p-6 text-center space-y-4 max-w-2xl mx-auto">
+                                        <div className="mx-auto w-12 h-12 bg-emerald-100 dark:bg-emerald-950/40 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                            <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.858.002-2.634-1.013-5.11-2.861-6.961C16.628 1.981 14.15 1.953 11.98 1.953c-5.438 0-9.865 4.422-9.87 9.86-.002 1.902.486 3.758 1.416 5.396L2.533 21.6l4.114-1.08zM17.486 14.4c-.27-.137-1.602-.79-1.85-.88-.25-.09-.432-.136-.613.137-.18.272-.7.88-.857 1.058-.157.178-.314.202-.585.065-.27-.137-1.14-.42-2.172-1.34-.802-.715-1.343-1.6-1.5-1.875-.158-.276-.017-.424.118-.56.123-.124.27-.315.407-.473.137-.158.18-.27.27-.45.09-.18.044-.336-.02-.473-.066-.137-.613-1.477-.84-2.024-.22-.53-.442-.457-.613-.466l-.523-.007c-.18 0-.473.067-.72.336-.248.27-.946.924-.946 2.256s.97 2.616 1.104 2.8c.135.183 1.908 2.913 4.62 4.08 2.71 1.168 2.71.778 3.2.73.49-.047 1.602-.656 1.83-1.288.226-.63.226-1.173.156-1.287-.07-.113-.252-.18-.522-.317z"/>
+                                            </svg>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-200">
+                                                {isConfigured ? '¿Necesitas actualizar tus credenciales?' : 'Solicita la activación de tu catálogo'}
+                                            </h4>
+                                            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed max-w-md mx-auto">
+                                                Envíanos un mensaje para que configuremos o actualicemos los parámetros de Meta y WhatsApp Cloud de forma rápida y segura en tu cuenta.
+                                            </p>
+                                        </div>
+                                        <div className="pt-2">
+                                            <a
+                                                href={whatsappUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold text-xs py-2.5 px-6 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20"
+                                            >
+                                                <span>Enviar Mensaje de Configuración</span>
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         <div className="flex items-center gap-4 border-t border-slate-200 dark:border-zinc-800 pt-5">
                             <Button disabled={processing} className="px-6">Guardar Cambios</Button>

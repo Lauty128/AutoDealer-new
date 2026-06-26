@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Search, Plus, Trash2, Edit2, Landmark, Globe, Phone, Mail, Image as ImageIcon, Sparkles, ShieldAlert, Layers, ExternalLink } from 'lucide-react';
+import { Search, Plus, Trash2, Edit2, Landmark, Globe, Phone, Mail, Image as ImageIcon, Sparkles, ShieldAlert, Layers, ExternalLink, Loader2 } from 'lucide-react';
 import InputError from '@/components/input-error';
+import axios from 'axios';
 
 interface Store {
     id: number;
@@ -31,6 +32,8 @@ interface Store {
     map_iframe: string | null;
     meta_title: string | null;
     meta_description: string | null;
+    whatsapp_phone_number_id: string | null;
+    whatsapp_catalog_id: string | null;
     vehicles_count: number;
 }
 
@@ -51,7 +54,7 @@ interface StoresProps {
     message?: string;
 }
 
-type FormTab = 'basic' | 'social' | 'appearance';
+type FormTab = 'basic' | 'social' | 'appearance' | 'integrations';
 
 export default function StoresIndex({ stores, filters, status, message }: StoresProps) {
     const breadcrumbs = [
@@ -67,6 +70,17 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+
+    // WhatsApp Wizard States
+    const [isWizardActive, setIsWizardActive] = useState(false);
+    const [wizardStep, setWizardStep] = useState(1);
+    const [wizardPhoneId, setWizardPhoneId] = useState('');
+    const [wizardMethod, setWizardMethod] = useState<'SMS' | 'VOICE'>('SMS');
+    const [wizardCode, setWizardCode] = useState('');
+    const [wizardPin, setWizardPin] = useState('');
+    const [wizardLoading, setWizardLoading] = useState(false);
+    const [wizardError, setWizardError] = useState<string | null>(null);
+    const [wizardSuccess, setWizardSuccess] = useState<string | null>(null);
 
     // Form setups
     const createForm = useForm({
@@ -89,6 +103,8 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
         map_iframe: '',
         meta_title: '',
         meta_description: '',
+        whatsapp_phone_number_id: '',
+        whatsapp_catalog_id: '',
     });
 
     const editForm = useForm({
@@ -114,6 +130,8 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
         map_iframe: '',
         meta_title: '',
         meta_description: '',
+        whatsapp_phone_number_id: '',
+        whatsapp_catalog_id: '',
     });
 
     const handleSearch = (e: React.FormEvent) => {
@@ -141,9 +159,22 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
         }
     };
 
+    const resetWizard = () => {
+        setIsWizardActive(false);
+        setWizardStep(1);
+        setWizardPhoneId('');
+        setWizardMethod('SMS');
+        setWizardCode('');
+        setWizardPin('');
+        setWizardLoading(false);
+        setWizardError(null);
+        setWizardSuccess(null);
+    };
+
     const openEdit = (store: Store) => {
         setSelectedStore(store);
         setActiveTab('basic');
+        resetWizard();
         editForm.setData({
             id: store.id,
             name: store.name,
@@ -167,6 +198,8 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
             map_iframe: store.map_iframe || '',
             meta_title: store.meta_title || '',
             meta_description: store.meta_description || '',
+            whatsapp_phone_number_id: store.whatsapp_phone_number_id || '',
+            whatsapp_catalog_id: store.whatsapp_catalog_id || '',
         });
         setIsEditOpen(true);
     };
@@ -186,6 +219,88 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
         });
     };
 
+    const handleRequestCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editForm.data.id) return;
+        if (!wizardPhoneId.trim()) {
+            setWizardError('El ID del número de teléfono es obligatorio.');
+            return;
+        }
+
+        setWizardLoading(true);
+        setWizardError(null);
+        setWizardSuccess(null);
+
+        try {
+            const response = await axios.post(`/admin/stores/${editForm.data.id}/whatsapp/request-code`, {
+                whatsapp_phone_number_id: wizardPhoneId,
+                code_method: wizardMethod,
+            });
+
+            if (response.data.status === 'success') {
+                setWizardStep(2);
+                setWizardSuccess(response.data.message);
+            } else {
+                setWizardError(response.data.message || 'Error al solicitar el código.');
+            }
+        } catch (error: any) {
+            console.error(error);
+            setWizardError(error.response?.data?.message || 'Ocurrió un error al solicitar el código.');
+        } finally {
+            setWizardLoading(false);
+        }
+    };
+
+    const handleVerifyAndRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editForm.data.id) return;
+        if (!wizardCode.trim() || wizardCode.length !== 6) {
+            setWizardError('El código de verificación debe tener 6 dígitos.');
+            return;
+        }
+        if (!wizardPin.trim() || wizardPin.length !== 6) {
+            setWizardError('El PIN 2FA debe tener 6 dígitos.');
+            return;
+        }
+
+        setWizardLoading(true);
+        setWizardError(null);
+        setWizardSuccess(null);
+
+        try {
+            const response = await axios.post(`/admin/stores/${editForm.data.id}/whatsapp/verify-register`, {
+                whatsapp_phone_number_id: wizardPhoneId,
+                code: wizardCode,
+                pin: wizardPin,
+            });
+
+            if (response.data.status === 'success') {
+                setWizardSuccess(response.data.message);
+                
+                // Update form data with the results
+                editForm.setData(data => ({
+                    ...data,
+                    whatsapp_phone_number_id: response.data.whatsapp_phone_number_id || wizardPhoneId,
+                    whatsapp_catalog_id: response.data.whatsapp_catalog_id || '',
+                }));
+
+                // Reset wizard state after delay
+                setTimeout(() => {
+                    resetWizard();
+                    // Reload page to refresh store in listing
+                    router.reload();
+                }, 3000);
+            } else {
+                setWizardError(response.data.message || 'Error al verificar e integrar.');
+            }
+        } catch (error: any) {
+            console.error(error);
+            setWizardError(error.response?.data?.message || 'Ocurrió un error al verificar e integrar.');
+        } finally {
+            setWizardLoading(false);
+        }
+    };
+
     const submitEdit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!editForm.data.id) return;
@@ -195,6 +310,7 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
             onSuccess: () => {
                 editForm.reset();
                 setIsEditOpen(false);
+                resetWizard();
             },
         });
     };
@@ -362,6 +478,13 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
                             className={`pb-2 border-b-2 transition-colors ${activeTab === 'appearance' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
                         >
                             Apariencia y SEO
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('integrations')}
+                            className={`pb-2 border-b-2 transition-colors ${activeTab === 'integrations' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
+                        >
+                            Integración Meta
                         </button>
                     </div>
 
@@ -601,6 +724,37 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
                             </div>
                         )}
 
+                        {activeTab === 'integrations' && (
+                            <div className="space-y-4">
+                                <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-3 rounded-lg border border-emerald-500/20 text-xs flex items-center gap-2">
+                                    <Phone className="h-4 w-4 shrink-0" />
+                                    <span>Configura la integración de WhatsApp y Catálogos de Meta para este concesionario.</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="whatsapp_phone_number_id">ID del Número de Teléfono (WA)</Label>
+                                        <Input
+                                            id="whatsapp_phone_number_id"
+                                            value={createForm.data.whatsapp_phone_number_id}
+                                            onChange={(e) => createForm.setData('whatsapp_phone_number_id', e.target.value)}
+                                            placeholder="Ej: 9876543210987"
+                                        />
+                                        <InputError message={createForm.errors.whatsapp_phone_number_id} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="whatsapp_catalog_id">ID del Catálogo de WhatsApp</Label>
+                                        <Input
+                                            id="whatsapp_catalog_id"
+                                            value={createForm.data.whatsapp_catalog_id}
+                                            onChange={(e) => createForm.setData('whatsapp_catalog_id', e.target.value)}
+                                            placeholder="Ej: 55667788990011"
+                                        />
+                                        <InputError message={createForm.errors.whatsapp_catalog_id} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
                             <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                                 Cancelar
@@ -643,6 +797,13 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
                             className={`pb-2 border-b-2 transition-colors ${activeTab === 'appearance' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
                         >
                             Apariencia y SEO
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('integrations')}
+                            className={`pb-2 border-b-2 transition-colors ${activeTab === 'integrations' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
+                        >
+                            Integración Meta
                         </button>
                     </div>
 
@@ -893,11 +1054,214 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
                             </div>
                         )}
 
+                        {activeTab === 'integrations' && (
+                            <div className="space-y-4">
+                                {!isWizardActive ? (
+                                    <>
+                                        <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-3 rounded-lg border border-emerald-500/20 text-xs flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <Phone className="h-4 w-4 shrink-0" />
+                                                <span>Configura la integración de WhatsApp y Catálogos de Meta para este concesionario.</span>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setIsWizardActive(true);
+                                                    setWizardPhoneId(editForm.data.whatsapp_phone_number_id || '');
+                                                }}
+                                                className="bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white border-none shrink-0"
+                                            >
+                                                <Sparkles className="h-3.5 w-3.5 mr-1" />
+                                                Usar Asistente
+                                            </Button>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="edit-whatsapp_phone_number_id">ID del Número de Teléfono (WA)</Label>
+                                                <Input
+                                                    id="edit-whatsapp_phone_number_id"
+                                                    value={editForm.data.whatsapp_phone_number_id}
+                                                    onChange={(e) => editForm.setData('whatsapp_phone_number_id', e.target.value)}
+                                                    placeholder="Ej: 9876543210987"
+                                                />
+                                                <InputError message={editForm.errors.whatsapp_phone_number_id} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="edit-whatsapp_catalog_id">ID del Catálogo de WhatsApp</Label>
+                                                <Input
+                                                    id="edit-whatsapp_catalog_id"
+                                                    value={editForm.data.whatsapp_catalog_id}
+                                                    onChange={(e) => editForm.setData('whatsapp_catalog_id', e.target.value)}
+                                                    placeholder="Ej: 55667788990011"
+                                                />
+                                                <InputError message={editForm.errors.whatsapp_catalog_id} />
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="border rounded-xl p-4 bg-muted/20 space-y-4">
+                                        <div className="flex items-center justify-between border-b pb-2 mb-2">
+                                            <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                                                <Sparkles className="h-4 w-4" />
+                                                <span>Asistente de Configuración WhatsApp</span>
+                                            </div>
+                                            <span className="text-xs font-medium text-muted-foreground bg-muted border px-2 py-0.5 rounded-full">
+                                                Paso {wizardStep} de 2
+                                            </span>
+                                        </div>
+
+                                        {wizardError && (
+                                            <div className="p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-lg">
+                                                {wizardError}
+                                            </div>
+                                        )}
+
+                                        {wizardSuccess && (
+                                            <div className="p-3 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                                {wizardSuccess}
+                                            </div>
+                                        )}
+
+                                        {wizardStep === 1 && (
+                                            <div className="space-y-4">
+                                                <p className="text-xs text-muted-foreground">
+                                                    Paso 1: Ingresa el ID del número de teléfono previamente registrado en tu cuenta de Meta Business y elige el método para recibir el código OTP de verificación.
+                                                </p>
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="wizard_phone_id">ID del Número de Teléfono de WhatsApp (Meta)</Label>
+                                                    <Input
+                                                        id="wizard_phone_id"
+                                                        value={wizardPhoneId}
+                                                        onChange={(e) => setWizardPhoneId(e.target.value)}
+                                                        placeholder="Ej: 9876543210987"
+                                                        disabled={wizardLoading}
+                                                    />
+                                                </div>
+
+                                                <div className="grid gap-2">
+                                                    <Label>Método de Verificación</Label>
+                                                    <div className="flex gap-6 mt-1">
+                                                        <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                                                            <input
+                                                                type="radio"
+                                                                name="wizard_method"
+                                                                value="SMS"
+                                                                checked={wizardMethod === 'SMS'}
+                                                                onChange={() => setWizardMethod('SMS')}
+                                                                disabled={wizardLoading}
+                                                                className="accent-primary"
+                                                            />
+                                                            <span>Mensaje de Texto (SMS)</span>
+                                                        </label>
+                                                        <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                                                            <input
+                                                                type="radio"
+                                                                name="wizard_method"
+                                                                value="VOICE"
+                                                                checked={wizardMethod === 'VOICE'}
+                                                                onChange={() => setWizardMethod('VOICE')}
+                                                                disabled={wizardLoading}
+                                                                className="accent-primary"
+                                                            />
+                                                            <span>Llamada de Voz</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex justify-between items-center pt-2 border-t mt-4">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={resetWizard}
+                                                        disabled={wizardLoading}
+                                                    >
+                                                        Volver
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={handleRequestCode}
+                                                        disabled={wizardLoading}
+                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                                    >
+                                                        {wizardLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                        {wizardLoading ? 'Solicitando...' : 'Solicitar Código'}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {wizardStep === 2 && (
+                                            <div className="space-y-4">
+                                                <p className="text-xs text-muted-foreground">
+                                                    Paso 2: Ingresa el código OTP de 6 dígitos enviado por Meta y define un PIN de 6 dígitos que se usará para el registro y seguridad 2FA de este número.
+                                                </p>
+                                                
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor="wizard_code">Código de Verificación (OTP)</Label>
+                                                        <Input
+                                                            id="wizard_code"
+                                                            value={wizardCode}
+                                                            onChange={(e) => setWizardCode(e.target.value.replace(/\D/g, '').substring(0, 6))}
+                                                            placeholder="Ej: 123456"
+                                                            disabled={wizardLoading}
+                                                            maxLength={6}
+                                                        />
+                                                    </div>
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor="wizard_pin">PIN de Registro (2FA)</Label>
+                                                        <Input
+                                                            id="wizard_pin"
+                                                            value={wizardPin}
+                                                            onChange={(e) => setWizardPin(e.target.value.replace(/\D/g, '').substring(0, 6))}
+                                                            placeholder="Ej: 654321"
+                                                            disabled={wizardLoading}
+                                                            maxLength={6}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex justify-between items-center pt-2 border-t mt-4">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setWizardStep(1);
+                                                            setWizardError(null);
+                                                            setWizardSuccess(null);
+                                                        }}
+                                                        disabled={wizardLoading}
+                                                    >
+                                                        Atrás
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={handleVerifyAndRegister}
+                                                        disabled={wizardLoading}
+                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                                    >
+                                                        {wizardLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                        {wizardLoading ? 'Procesando...' : 'Verificar y Registrar'}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
                             <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={editForm.processing}>
+                            <Button type="submit" disabled={editForm.processing || isWizardActive}>
                                 Guardar Cambios
                             </Button>
                         </DialogFooter>

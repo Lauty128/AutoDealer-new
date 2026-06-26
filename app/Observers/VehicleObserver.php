@@ -26,11 +26,14 @@ class VehicleObserver
             'created'
         );
 
-        SyncVehicleToWhatsApp::dispatch(
-            $vehicle->id,
-            $vehicle->store_id,
-            'created'
-        );
+        $store = $vehicle->store;
+        if ($store && !empty($store->whatsapp_phone_number_id)) {
+            SyncVehicleToWhatsApp::dispatch(
+                $vehicle->id,
+                $vehicle->store_id,
+                'created'
+            );
+        }
     }
 
     /**
@@ -44,11 +47,14 @@ class VehicleObserver
             'updated'
         );
 
-        SyncVehicleToWhatsApp::dispatch(
-            $vehicle->id,
-            $vehicle->store_id,
-            'updated'
-        );
+        $store = $vehicle->store;
+        if ($store && !empty($store->whatsapp_phone_number_id)) {
+            SyncVehicleToWhatsApp::dispatch(
+                $vehicle->id,
+                $vehicle->store_id,
+                'updated'
+            );
+        }
     }
 
     /**
@@ -63,11 +69,13 @@ class VehicleObserver
             $vehicle->mercadolibre_id
         );
 
-        SyncVehicleToWhatsApp::dispatch(
-            $vehicle->id,
-            $vehicle->store_id,
-            'deleted',
-            $vehicle->whatsapp_id
-        );
+        if (!empty($vehicle->whatsapp_id)) {
+            SyncVehicleToWhatsApp::dispatch(
+                $vehicle->id,
+                $vehicle->store_id,
+                'deleted',
+                $vehicle->whatsapp_id
+            );
+        }
     }
 }
