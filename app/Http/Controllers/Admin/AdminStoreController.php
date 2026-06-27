@@ -8,6 +8,7 @@ use App\Models\Store;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -70,6 +71,8 @@ class AdminStoreController extends Controller
             'meta_description' => 'nullable|string|max:255',
             'whatsapp_phone_number_id' => 'nullable|string|max:255',
             'whatsapp_catalog_id' => 'nullable|string|max:255',
+            'whatsapp_access_token' => 'nullable|string',
+            'whatsapp_business_id' => 'nullable|string|max:255',
         ]);
 
         // Upload logo if sent
@@ -133,6 +136,8 @@ class AdminStoreController extends Controller
             'meta_description' => 'nullable|string|max:255',
             'whatsapp_phone_number_id' => 'nullable|string|max:255',
             'whatsapp_catalog_id' => 'nullable|string|max:255',
+            'whatsapp_access_token' => 'nullable|string',
+            'whatsapp_business_id' => 'nullable|string|max:255',
         ]);
 
         // Upload logo if sent
@@ -247,8 +252,16 @@ class AdminStoreController extends Controller
         }
 
         $errorData = $response->json();
-        \Illuminate\Support\Facades\Log::error("Meta request_code failure for store {$id}: " . json_encode($errorData));
-        $errorMessage = $errorData['error']['error_user_msg'] ?? $errorData['error']['message'] ?? 'Error al solicitar el código en Meta.';
+        Log::error("Meta request_code failure for store {$id}: ".json_encode($errorData));
+
+        $errorCode = $errorData['error']['code'] ?? null;
+        $errorSubcode = $errorData['error']['error_subcode'] ?? null;
+
+        if ($errorSubcode === 2388091) {
+            $errorMessage = 'El número de teléfono no es elegible para recibir el código de confirmación. Esto suele suceder si el número ya está registrado en la aplicación de WhatsApp (común o Business) en un celular. Debes eliminar la cuenta de WhatsApp desde los ajustes de la aplicación móvil para liberar el número y volver a intentarlo. También verifica que el número esté correctamente configurado y activo en tu Meta Business Manager.';
+        } else {
+            $errorMessage = $errorData['error']['error_user_msg'] ?? $errorData['error']['message'] ?? 'Error al solicitar el código en Meta.';
+        }
 
         return response()->json([
             'status' => 'error',
@@ -290,10 +303,11 @@ class AdminStoreController extends Controller
                 'code' => $code,
             ]);
 
-        if (!$verifyResponse->successful()) {
+        if (! $verifyResponse->successful()) {
             $errorData = $verifyResponse->json();
-            \Illuminate\Support\Facades\Log::error("Meta verify_code failure for store {$id}: " . json_encode($errorData));
+            Log::error("Meta verify_code failure for store {$id}: ".json_encode($errorData));
             $msg = $errorData['error']['error_user_msg'] ?? $errorData['error']['message'] ?? 'El código de verificación es inválido o expiró.';
+
             return response()->json(['status' => 'error', 'message' => $msg], 422);
         }
 
@@ -304,34 +318,59 @@ class AdminStoreController extends Controller
                 'pin' => $pin,
             ]);
 
-        if (!$registerResponse->successful()) {
+        if (! $registerResponse->successful()) {
             $errorData = $registerResponse->json();
-            \Illuminate\Support\Facades\Log::error("Meta register phone failure for store {$id}: " . json_encode($errorData));
+            Log::error("Meta register phone failure for store {$id}: ".json_encode($errorData));
             $msg = $errorData['error']['error_user_msg'] ?? $errorData['error']['message'] ?? 'Error al registrar el número en Meta.';
+
             return response()->json(['status' => 'error', 'message' => $msg], 422);
         }
 
-        // 3. Create Product Catalog
-        $catalogName = "Autodealer - " . $store->name;
-        $catalogResponse = $this->getHttpClient($accessToken)
-            ->post("https://graph.facebook.com/v18.0/{$businessId}/owned_product_catalogs", [
-                'name' => $catalogName,
-                'vertical' => 'COMMERCE',
+        // 3. Find or Create Product Catalog
+        $catalogName = 'Autodealer - '.$store->name;
+        $catalogId = null;
+
+        // Try to find an existing catalog with this name in the Business Portfolio
+        $searchResponse = $this->getHttpClient($accessToken)
+            ->get("https://graph.facebook.com/v18.0/{$businessId}/owned_product_catalogs", [
+                'limit' => 100,
             ]);
 
-        if (!$catalogResponse->successful()) {
-            $errorData = $catalogResponse->json();
-            \Illuminate\Support\Facades\Log::error("Meta create catalog failure for store {$id}: " . json_encode($errorData));
-            $msg = $errorData['error']['error_user_msg'] ?? $errorData['error']['message'] ?? 'Error al crear el catálogo de productos en Meta.';
-            return response()->json(['status' => 'error', 'message' => $msg], 422);
+        if ($searchResponse->successful()) {
+            $catalogs = $searchResponse->json()['data'] ?? [];
+            foreach ($catalogs as $catalog) {
+                if (($catalog['name'] ?? '') === $catalogName) {
+                    $catalogId = $catalog['id'];
+                    break;
+                }
+            }
         }
 
-        $catalogId = $catalogResponse->json()['id'] ?? null;
         if (empty($catalogId)) {
-            \Illuminate\Support\Facades\Log::error("Meta created catalog ID is empty for store {$id}");
+            // Create a new catalog since none was found
+            $catalogResponse = $this->getHttpClient($accessToken)
+                ->post("https://graph.facebook.com/v18.0/{$businessId}/owned_product_catalogs", [
+                    'name' => $catalogName,
+                    'vertical' => 'COMMERCE',
+                ]);
+
+            if (! $catalogResponse->successful()) {
+                $errorData = $catalogResponse->json();
+                Log::error("Meta create catalog failure for store {$id}: ".json_encode($errorData));
+                $msg = $errorData['error']['error_user_msg'] ?? $errorData['error']['message'] ?? 'Error al crear el catálogo de productos en Meta.';
+
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+
+            $catalogId = $catalogResponse->json()['id'] ?? null;
+        }
+
+        if (empty($catalogId)) {
+            Log::error("Meta catalog ID is empty for store {$id}");
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'No se pudo obtener el ID del catálogo creado.',
+                'message' => 'No se pudo obtener ni crear el catálogo de productos.',
             ], 422);
         }
 
@@ -341,10 +380,11 @@ class AdminStoreController extends Controller
                 'catalog_id' => $catalogId,
             ]);
 
-        if (!$linkResponse->successful()) {
+        if (! $linkResponse->successful()) {
             $errorData = $linkResponse->json();
-            \Illuminate\Support\Facades\Log::error("Meta link catalog failure for store {$id}: " . json_encode($errorData));
+            Log::error("Meta link catalog failure for store {$id}: ".json_encode($errorData));
             $msg = $errorData['error']['error_user_msg'] ?? $errorData['error']['message'] ?? 'Catálogo creado pero falló la vinculación con la cuenta de WhatsApp.';
+
             return response()->json(['status' => 'error', 'message' => $msg], 422);
         }
 
@@ -363,6 +403,90 @@ class AdminStoreController extends Controller
     }
 
     /**
+     * Create only a product catalog under Meta Business ID and link it to the store.
+     */
+    public function createCatalogOnly(Request $request, $id)
+    {
+        $store = Store::findOrFail($id);
+
+        $accessToken = config('services.meta.access_token');
+        $businessId = config('services.meta.business_id');
+        $wabaId = config('services.meta.waba_id');
+
+        if (empty($accessToken) || empty($businessId) || empty($wabaId)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Faltan configurar las credenciales globales de Meta (Token, Business ID o WABA ID).',
+            ], 422);
+        }
+
+        // Find or Create Product Catalog
+        $catalogName = 'Autodealer - '.$store->name;
+        $catalogId = null;
+
+        // Try to find an existing catalog with this name in the Business Portfolio
+        $searchResponse = $this->getHttpClient($accessToken)
+            ->get("https://graph.facebook.com/v18.0/{$businessId}/owned_product_catalogs", [
+                'limit' => 100,
+            ]);
+
+        if ($searchResponse->successful()) {
+            $catalogs = $searchResponse->json()['data'] ?? [];
+            foreach ($catalogs as $catalog) {
+                if (($catalog['name'] ?? '') === $catalogName) {
+                    $catalogId = $catalog['id'];
+                    break;
+                }
+            }
+        }
+
+        if (empty($catalogId)) {
+            // Create a new catalog since none was found
+            $catalogResponse = $this->getHttpClient($accessToken)
+                ->post("https://graph.facebook.com/v18.0/{$businessId}/owned_product_catalogs", [
+                    'name' => $catalogName,
+                    'vertical' => 'COMMERCE',
+                ]);
+
+            if (! $catalogResponse->successful()) {
+                $errorData = $catalogResponse->json();
+                Log::error("Meta create catalog only failure for store {$id}: ".json_encode($errorData));
+                $msg = $errorData['error']['error_user_msg'] ?? $errorData['error']['message'] ?? 'Error al crear el catálogo de productos en Meta.';
+
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+
+            $catalogId = $catalogResponse->json()['id'] ?? null;
+        }
+
+        if (empty($catalogId)) {
+            Log::error("Meta catalog ID is empty for store {$id}");
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo obtener ni crear el catálogo de productos.',
+            ], 422);
+        }
+
+        // Link Catalog to WABA
+        $linkResponse = $this->getHttpClient($accessToken)
+            ->post("https://graph.facebook.com/v18.0/{$wabaId}/product_catalogs", [
+                'catalog_id' => $catalogId,
+            ]);
+
+        // Update Store record
+        $store->update([
+            'whatsapp_catalog_id' => $catalogId,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Catálogo enlazado correctamente.',
+            'whatsapp_catalog_id' => $catalogId,
+        ]);
+    }
+
+    /**
      * Get configured Http client instance (bypasses SSL verification locally).
      */
     protected function getHttpClient(string $accessToken)
@@ -371,6 +495,7 @@ class AdminStoreController extends Controller
         if (config('app.env') === 'local') {
             $http->withoutVerifying();
         }
+
         return $http;
     }
 }

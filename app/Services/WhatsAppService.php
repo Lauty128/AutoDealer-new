@@ -18,10 +18,11 @@ class WhatsAppService
     {
         $store = $vehicle->store ?: $vehicle->load('store')->store;
         $catalogId = $store?->whatsapp_catalog_id;
-        $accessToken = config('services.meta.access_token');
+        $accessToken = $store?->whatsapp_access_token ?: config('services.meta.access_token');
 
         if (empty($catalogId) || empty($accessToken)) {
-            Log::warning('WhatsAppService: Missing Meta catalog configuration for store ' . $vehicle->store_id);
+            Log::warning('WhatsAppService: Missing Meta catalog configuration for store '.$vehicle->store_id);
+
             return null;
         }
 
@@ -33,19 +34,19 @@ class WhatsAppService
 
         // Obtener datos del vehiculo
         $brand = $vehicle->mark ? $vehicle->mark->name : 'Genérico';
-        $title = $brand . ' ' . $vehicle->model . ' ' . $vehicle->year;
+        $title = $brand.' '.$vehicle->model.' '.$vehicle->year;
         $description = "Vehículo {$brand} {$vehicle->model} año {$vehicle->year} en excelentes condiciones.";
-        
-        $priceFormatted = number_format($vehicle->price, 2, '.', '') . ' ' . $vehicle->currency;
+
+        $priceFormatted = number_format($vehicle->price, 2, '.', '').' '.$vehicle->currency;
         $availability = $vehicle->status === 'available' ? 'in stock' : 'out of stock';
 
         $link = $vehicle->store ? route('public.catalog', [$vehicle->store->slug, $vehicle->slug]) : url('/');
         $imageLink = $vehicle->cover_image ? (str_starts_with($vehicle->cover_image, 'http') ? $vehicle->cover_image : url($vehicle->cover_image)) : 'https://placehold.co/600x400?text=No+Image';
 
-        $retailerId = 'vehicle_' . $vehicle->id;
+        $retailerId = 'vehicle_'.$vehicle->id;
 
         $response = Http::withToken($accessToken)
-            ->post("https://graph.facebook.com/v18.0/{$catalogId}/items_batch", [
+            ->post("https://graph.facebook.com/v19.0/{$catalogId}/items_batch", [
                 'item_type' => 'PRODUCT_ITEM',
                 'requests' => [
                     [
@@ -100,10 +101,11 @@ class WhatsAppService
 
         $store = $vehicle->store ?: $vehicle->load('store')->store;
         $catalogId = $store?->whatsapp_catalog_id;
-        $accessToken = config('services.meta.access_token');
+        $accessToken = $store?->whatsapp_access_token ?: config('services.meta.access_token');
 
         if (empty($catalogId) || empty($accessToken)) {
-            Log::warning('WhatsAppService: Missing Meta catalog configuration for store ' . $vehicle->store_id);
+            Log::warning('WhatsAppService: Missing Meta catalog configuration for store '.$vehicle->store_id);
+
             return false;
         }
 
@@ -114,17 +116,17 @@ class WhatsAppService
         ]);
 
         $brand = $vehicle->mark ? $vehicle->mark->name : 'Genérico';
-        $title = $brand . ' ' . $vehicle->model . ' ' . $vehicle->year;
+        $title = $brand.' '.$vehicle->model.' '.$vehicle->year;
         $description = $vehicle->description ?: "Vehículo {$brand} {$vehicle->model} año {$vehicle->year} en excelentes condiciones.";
-        
-        $priceFormatted = number_format($vehicle->price, 2, '.', '') . ' ' . $vehicle->currency;
+
+        $priceFormatted = number_format($vehicle->price, 2, '.', '').' '.$vehicle->currency;
         $availability = $vehicle->status === 'available' ? 'in stock' : 'out of stock';
 
         $link = $vehicle->store ? route('public.catalog', [$vehicle->store->slug, $vehicle->slug]) : url('/');
         $imageLink = $vehicle->cover_image ? (str_starts_with($vehicle->cover_image, 'http') ? $vehicle->cover_image : url($vehicle->cover_image)) : 'https://placehold.co/600x400?text=No+Image';
 
         $response = Http::withToken($accessToken)
-            ->post("https://graph.facebook.com/v18.0/{$catalogId}/items_batch", [
+            ->post("https://graph.facebook.com/v19.0/{$catalogId}/items_batch", [
                 'item_type' => 'PRODUCT_ITEM',
                 'requests' => [
                     [
@@ -166,10 +168,11 @@ class WhatsAppService
     {
         $store = Store::find($storeId);
         $catalogId = $store?->whatsapp_catalog_id;
-        $accessToken = config('services.meta.access_token');
+        $accessToken = $store?->whatsapp_access_token ?: config('services.meta.access_token');
 
         if (empty($catalogId) || empty($accessToken)) {
-            Log::warning('WhatsAppService: Missing Meta catalog configuration for store ' . $storeId);
+            Log::warning('WhatsAppService: Missing Meta catalog configuration for store '.$storeId);
+
             return false;
         }
 
@@ -179,7 +182,7 @@ class WhatsAppService
         ]);
 
         $response = Http::withToken($accessToken)
-            ->post("https://graph.facebook.com/v18.0/{$catalogId}/items_batch", [
+            ->post("https://graph.facebook.com/v19.0/{$catalogId}/items_batch", [
                 'item_type' => 'PRODUCT_ITEM',
                 'requests' => [
                     [

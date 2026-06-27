@@ -11,6 +11,7 @@ use App\Models\VehicleType;
 use App\Services\MercadoLibreService;
 use App\Services\WhatsAppService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
@@ -234,13 +235,13 @@ test('WhatsAppService calls Meta Graph API to create a catalog item', function (
         'currency' => 'USD',
     ]);
 
-    $service = new WhatsAppService();
+    $service = new WhatsAppService;
     $result = $service->createCatalogItem($vehicle);
 
-    expect($result)->toBe('vehicle_' . $vehicle->id);
+    expect($result)->toBe('vehicle_'.$vehicle->id);
 
-    Http::assertSent(function (\Illuminate\Http\Client\Request $request) use ($vehicle) {
-        return $request->url() === 'https://graph.facebook.com/v18.0/123456/items_batch' &&
+    Http::assertSent(function (Request $request) {
+        return $request->url() === 'https://graph.facebook.com/v19.0/123456/items_batch' &&
             $request->method() === 'POST' &&
             $request['requests'][0]['method'] === 'CREATE' &&
             $request['requests'][0]['data']['title'] === 'Toyota Corolla Cross 2024';

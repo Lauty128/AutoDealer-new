@@ -1022,20 +1022,18 @@ export default function StoreSettings({ stores, activeStore, support_whatsapp, s
                                         </div>
                                         <div className="space-y-2">
                                             <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-200">
-                                                {isConfigured ? '¿Necesitas actualizar tus credenciales?' : 'Solicita la activación de tu catálogo'}
+                                                {isConfigured ? '¿Necesitas actualizar tus credenciales?' : 'Configurar catálogo de WhatsApp'}
                                             </h4>
                                             <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed max-w-md mx-auto">
-                                                Envíanos un mensaje para que configuremos o actualicemos los parámetros de Meta y WhatsApp Cloud de forma rápida y segura en tu cuenta.
+                                                Vincule de forma autónoma su catálogo comercial de Meta y active la sincronización automática de vehículos mediante Facebook Login.
                                             </p>
                                         </div>
                                         <div className="pt-2">
                                             <a
-                                                href={whatsappUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold text-xs py-2.5 px-6 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20"
+                                                href="/dashboard/store/whatsapp/onboarding"
+                                                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-6 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20"
                                             >
-                                                <span>Enviar Mensaje de Configuración</span>
+                                                <span>Iniciar Configuración de Catálogo</span>
                                                 <ExternalLink className="w-3.5 h-3.5" />
                                             </a>
                                         </div>

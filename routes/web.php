@@ -20,7 +20,9 @@ use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\StoreController;
 use App\Http\Controllers\Settings\TemplateController;
+use App\Http\Controllers\Settings\WhatsAppOnboardingController;
 use App\Http\Controllers\VehicleController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -71,6 +73,13 @@ Route::middleware(['auth', 'verified', 'impersonate_superadmin'])->prefix('dashb
         // Direct Store Settings Page
         Route::get('store/settings', [StoreController::class, 'edit'])->name('store.settings.edit');
         Route::post('store/settings', [StoreController::class, 'update'])->name('store.settings.update');
+
+        // WhatsApp Onboarding and Catalog Integration
+        Route::get('store/whatsapp/onboarding', [WhatsAppOnboardingController::class, 'showOnboarding'])->name('store.whatsapp.onboarding');
+        Route::get('store/whatsapp/callback', [WhatsAppOnboardingController::class, 'callback'])->name('store.whatsapp.callback');
+        Route::post('store/whatsapp/select-catalog', [WhatsAppOnboardingController::class, 'selectCatalog'])->name('store.whatsapp.selectCatalog');
+        Route::post('store/whatsapp/create-catalog', [WhatsAppOnboardingController::class, 'createCatalog'])->name('store.whatsapp.createCatalog');
+        Route::post('store/whatsapp/disconnect', [WhatsAppOnboardingController::class, 'disconnect'])->name('store.whatsapp.disconnect');
 
         // Direct Templates Settings Page
         Route::get('templates/settings', [TemplateController::class, 'edit'])->name('templates.settings.edit');
@@ -125,6 +134,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('stores/{id}', [AdminStoreController::class, 'destroy'])->name('stores.destroy');
         Route::post('stores/{id}/whatsapp/request-code', [AdminStoreController::class, 'requestVerificationCode'])->name('stores.whatsapp.requestCode');
         Route::post('stores/{id}/whatsapp/verify-register', [AdminStoreController::class, 'verifyAndRegister'])->name('stores.whatsapp.verifyRegister');
+        Route::post('stores/{id}/whatsapp/create-catalog', [AdminStoreController::class, 'createCatalogOnly'])->name('stores.whatsapp.createCatalog');
 
         // Templates CRUD
         Route::get('stores/{storeId}/templates', [AdminTemplateController::class, 'storeTemplates'])->name('stores.templates');
@@ -179,33 +189,33 @@ require __DIR__.'/auth.php';
 // Route for remote deployment and optimization (Token-protected)
 Route::match(['get', 'post'], 'deploy/{token}', function ($token) {
     $secureToken = env('DEPLOY_TOKEN');
-    
+
     if (empty($secureToken) || $token !== $secureToken) {
         abort(403, 'Acceso denegado. Token inválido.');
     }
-    
+
     try {
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        \Illuminate\Support\Facades\Artisan::call('view:clear');
-        \Illuminate\Support\Facades\Artisan::call('config:cache');
-        \Illuminate\Support\Facades\Artisan::call('route:cache');
-        \Illuminate\Support\Facades\Artisan::call('view:cache');
-        \Illuminate\Support\Facades\Artisan::call('queue:restart');
-        
+        Artisan::call('cache:clear');
+        Artisan::call('view:clear');
+        Artisan::call('config:cache');
+        Artisan::call('route:cache');
+        Artisan::call('view:cache');
+        Artisan::call('queue:restart');
+
         // Opcional: Ejecutar migraciones pendientes si las hay
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        
-        $output = \Illuminate\Support\Facades\Artisan::output();
-        
+        Artisan::call('migrate', ['--force' => true]);
+
+        $output = Artisan::output();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Despliegue, caché y migraciones completados con éxito.',
-            'details' => $output
+            'details' => $output,
         ]);
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Error durante el despliegue: ' . $e->getMessage()
+            'message' => 'Error durante el despliegue: '.$e->getMessage(),
         ], 500);
     }
 })->name('deploy.system');

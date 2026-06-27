@@ -41,6 +41,8 @@ class Store extends Model
         'meta_description',
         'whatsapp_phone_number_id',
         'whatsapp_catalog_id',
+        'whatsapp_access_token',
+        'whatsapp_business_id',
     ];
 
     /**

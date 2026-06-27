@@ -173,7 +173,7 @@ test('superadmin request WhatsApp verification code returns error on Meta failur
         'https://graph.facebook.com/v18.0/123456789/request_code' => Http::response([
             'error' => [
                 'message' => 'Invalid phone number ID',
-            ]
+            ],
         ], 400),
     ]);
 
@@ -188,6 +188,44 @@ test('superadmin request WhatsApp verification code returns error on Meta failur
         ->assertJson([
             'status' => 'error',
             'message' => 'Invalid phone number ID',
+        ]);
+});
+
+test('superadmin request WhatsApp verification code returns friendly message on phone not eligible subcode 2388091', function () {
+    $admin = User::factory()->create([
+        'is_superadmin' => true,
+    ]);
+
+    $store = Store::create([
+        'name' => 'My Concessionaire',
+        'slug' => 'my-concessionaire',
+        'phone' => '123456',
+    ]);
+
+    config(['services.meta.access_token' => 'mocked-access-token']);
+
+    Http::fake([
+        'https://graph.facebook.com/v18.0/123456789/request_code' => Http::response([
+            'error' => [
+                'message' => 'Request code error',
+                'code' => 136024,
+                'error_subcode' => 2388091,
+                'error_user_msg' => 'Error en la solicitud del código: Nuestros servidores no están disponibles temporalmente. Espera 1 hour antes de volver a intentarlo.',
+            ],
+        ], 400),
+    ]);
+
+    $response = $this
+        ->actingAs($admin)
+        ->postJson(route('admin.stores.whatsapp.requestCode', ['id' => $store->id]), [
+            'whatsapp_phone_number_id' => '123456789',
+            'code_method' => 'SMS',
+        ]);
+
+    $response->assertStatus(422)
+        ->assertJson([
+            'status' => 'error',
+            'message' => 'El número de teléfono no es elegible para recibir el código de confirmación. Esto suele suceder si el número ya está registrado en la aplicación de WhatsApp (común o Business) en un celular. Debes eliminar la cuenta de WhatsApp desde los ajustes de la aplicación móvil para liberar el número y volver a intentarlo. También verifica que el número esté correctamente configurado y activo en tu Meta Business Manager.',
         ]);
 });
 
@@ -236,3 +274,93 @@ test('superadmin can verify OTP, register phone, create catalog and link it succ
     expect($store->whatsapp_catalog_id)->toBe('mocked-catalog-id');
 });
 
+test('superadmin can verify OTP, register phone, find and link existing catalog successfully', function () {
+    $admin = User::factory()->create([
+        'is_superadmin' => true,
+    ]);
+
+    $store = Store::create([
+        'name' => 'My Concessionaire',
+        'slug' => 'my-concessionaire',
+        'phone' => '123456',
+    ]);
+
+    config([
+        'services.meta.access_token' => 'mocked-access-token',
+        'services.meta.waba_id' => 'mocked-waba-id',
+        'services.meta.business_id' => 'mocked-business-id',
+    ]);
+
+    Http::fake([
+        'https://graph.facebook.com/v18.0/123456789/verify_code' => Http::response(['success' => true], 200),
+        'https://graph.facebook.com/v18.0/123456789/register' => Http::response(['success' => true], 200),
+        'https://graph.facebook.com/v18.0/mocked-business-id/owned_product_catalogs*' => Http::response([
+            'data' => [
+                [
+                    'id' => 'existing-catalog-id',
+                    'name' => 'Autodealer - My Concessionaire',
+                ],
+            ],
+        ], 200),
+        'https://graph.facebook.com/v18.0/mocked-waba-id/product_catalogs' => Http::response(['success' => true], 200),
+    ]);
+
+    $response = $this
+        ->actingAs($admin)
+        ->postJson(route('admin.stores.whatsapp.verifyRegister', ['id' => $store->id]), [
+            'whatsapp_phone_number_id' => '123456789',
+            'code' => '123456',
+            'pin' => '654321',
+        ]);
+
+    $response->assertOk()
+        ->assertJson([
+            'status' => 'success',
+            'message' => 'Configuración de WhatsApp completada con éxito. Catálogo creado y enlazado.',
+            'whatsapp_phone_number_id' => '123456789',
+            'whatsapp_catalog_id' => 'existing-catalog-id',
+        ]);
+
+    $store->refresh();
+    expect($store->whatsapp_phone_number_id)->toBe('123456789');
+    expect($store->whatsapp_catalog_id)->toBe('existing-catalog-id');
+});
+
+test('superadmin can create catalog only without phone registration successfully', function () {
+    $admin = User::factory()->create([
+        'is_superadmin' => true,
+    ]);
+
+    $store = Store::create([
+        'name' => 'My Concessionaire',
+        'slug' => 'my-concessionaire',
+        'phone' => '123456',
+    ]);
+
+    config([
+        'services.meta.access_token' => 'mocked-access-token',
+        'services.meta.waba_id' => 'mocked-waba-id',
+        'services.meta.business_id' => 'mocked-business-id',
+    ]);
+
+    Http::fake([
+        'https://graph.facebook.com/v18.0/mocked-business-id/owned_product_catalogs*' => Http::sequence()
+            ->push(['data' => []], 200) // Search GET
+            ->push(['id' => 'new-catalog-id'], 200), // Create POST
+        'https://graph.facebook.com/v18.0/mocked-waba-id/product_catalogs' => Http::response(['success' => true], 200),
+    ]);
+
+    $response = $this
+        ->actingAs($admin)
+        ->postJson(route('admin.stores.whatsapp.createCatalog', ['id' => $store->id]));
+
+    $response->assertOk()
+        ->assertJson([
+            'status' => 'success',
+            'message' => 'Catálogo enlazado correctamente.',
+            'whatsapp_catalog_id' => 'new-catalog-id',
+        ]);
+
+    $store->refresh();
+    expect($store->whatsapp_catalog_id)->toBe('new-catalog-id');
+});

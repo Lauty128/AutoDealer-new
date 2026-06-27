@@ -27,7 +27,7 @@ class VehicleObserver
         );
 
         $store = $vehicle->store;
-        if ($store && !empty($store->whatsapp_phone_number_id)) {
+        if ($store && ! empty($store->whatsapp_catalog_id)) {
             SyncVehicleToWhatsApp::dispatch(
                 $vehicle->id,
                 $vehicle->store_id,
@@ -48,7 +48,7 @@ class VehicleObserver
         );
 
         $store = $vehicle->store;
-        if ($store && !empty($store->whatsapp_phone_number_id)) {
+        if ($store && ! empty($store->whatsapp_catalog_id)) {
             SyncVehicleToWhatsApp::dispatch(
                 $vehicle->id,
                 $vehicle->store_id,
@@ -69,7 +69,7 @@ class VehicleObserver
             $vehicle->mercadolibre_id
         );
 
-        if (!empty($vehicle->whatsapp_id)) {
+        if (! empty($vehicle->whatsapp_id)) {
             SyncVehicleToWhatsApp::dispatch(
                 $vehicle->id,
                 $vehicle->store_id,

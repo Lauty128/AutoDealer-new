@@ -50,6 +50,9 @@ return [
         'catalog_id' => env('META_CATALOG_ID'),
         'waba_id' => env('META_WABA_ID'),
         'business_id' => env('META_BUSINESS_ID'),
+        'client_id' => env('META_CLIENT_ID'),
+        'client_secret' => env('META_CLIENT_SECRET'),
+        'redirect_uri' => env('META_REDIRECT_URI'),
     ],
 
 ];
