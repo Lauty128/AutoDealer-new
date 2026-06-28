@@ -20,6 +20,7 @@ use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\StoreController;
 use App\Http\Controllers\Settings\TemplateController;
+use App\Http\Controllers\Settings\WhatsAppCatalogController;
 use App\Http\Controllers\VehicleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -71,6 +72,14 @@ Route::middleware(['auth', 'verified', 'impersonate_superadmin'])->prefix('dashb
         // Direct Store Settings Page
         Route::get('store/settings', [StoreController::class, 'edit'])->name('store.settings.edit');
         Route::post('store/settings', [StoreController::class, 'update'])->name('store.settings.update');
+
+        // WhatsApp Catalog Meta OAuth
+        Route::get('settings/whatsapp/connect', [WhatsAppCatalogController::class, 'connect'])->name('settings.whatsapp.connect');
+        Route::get('settings/whatsapp/callback', [WhatsAppCatalogController::class, 'callback'])->name('settings.whatsapp.callback');
+        Route::post('settings/whatsapp/disconnect', [WhatsAppCatalogController::class, 'disconnect'])->name('settings.whatsapp.disconnect');
+        Route::get('settings/whatsapp/catalogs', [WhatsAppCatalogController::class, 'listCatalogs'])->name('settings.whatsapp.catalogs');
+        Route::post('settings/whatsapp/select-catalog', [WhatsAppCatalogController::class, 'selectCatalog'])->name('settings.whatsapp.select-catalog');
+        Route::post('settings/whatsapp/sync-full', [WhatsAppCatalogController::class, 'syncFullStock'])->name('settings.whatsapp.sync-full');
 
         // Direct Templates Settings Page
         Route::get('templates/settings', [TemplateController::class, 'edit'])->name('templates.settings.edit');

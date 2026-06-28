@@ -18,6 +18,8 @@ interface Store {
     email: string | null;
     address: string | null;
     whatsapp: string | null;
+    whatsapp_catalog_id: string | null;
+    whatsapp_catalog_phone: string | null;
     instagram: string | null;
     facebook: string | null;
     tiktok: string | null;
@@ -51,7 +53,7 @@ interface StoresProps {
     message?: string;
 }
 
-type FormTab = 'basic' | 'social' | 'appearance';
+type FormTab = 'basic' | 'social' | 'appearance' | 'whatsapp';
 
 export default function StoresIndex({ stores, filters, status, message }: StoresProps) {
     const breadcrumbs = [
@@ -61,6 +63,8 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
 
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [activeTab, setActiveTab] = useState<FormTab>('basic');
+
+
 
     // Dialog states
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -76,6 +80,8 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
         email: '',
         address: '',
         whatsapp: '',
+        whatsapp_catalog_id: '',
+        whatsapp_catalog_phone: '',
         instagram: '',
         facebook: '',
         tiktok: '',
@@ -99,6 +105,8 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
         email: '',
         address: '',
         whatsapp: '',
+        whatsapp_catalog_id: '',
+        whatsapp_catalog_phone: '',
         instagram: '',
         facebook: '',
         tiktok: '',
@@ -167,6 +175,8 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
             map_iframe: store.map_iframe || '',
             meta_title: store.meta_title || '',
             meta_description: store.meta_description || '',
+            whatsapp_catalog_id: store.whatsapp_catalog_id || '',
+            whatsapp_catalog_phone: store.whatsapp_catalog_phone || '',
         });
         setIsEditOpen(true);
     };
@@ -362,6 +372,13 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
                             className={`pb-2 border-b-2 transition-colors ${activeTab === 'appearance' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
                         >
                             Apariencia y SEO
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('whatsapp')}
+                            className={`pb-2 border-b-2 transition-colors ${activeTab === 'whatsapp' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
+                        >
+                            Catálogo WhatsApp
                         </button>
                     </div>
 
@@ -601,6 +618,33 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
                             </div>
                         )}
 
+                        {activeTab === 'whatsapp' && (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="create_whatsapp_catalog_id">WhatsApp Catalog ID</Label>
+                                        <Input
+                                            id="create_whatsapp_catalog_id"
+                                            value={createForm.data.whatsapp_catalog_id}
+                                            onChange={(e) => createForm.setData('whatsapp_catalog_id', e.target.value)}
+                                            placeholder="Ingresa el ID del Catálogo de Meta..."
+                                        />
+                                        <InputError message={createForm.errors.whatsapp_catalog_id} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="create_whatsapp_catalog_phone">Teléfono del Catálogo</Label>
+                                        <Input
+                                            id="create_whatsapp_catalog_phone"
+                                            value={createForm.data.whatsapp_catalog_phone}
+                                            onChange={(e) => createForm.setData('whatsapp_catalog_phone', e.target.value)}
+                                            placeholder="Ej: 5491112345678"
+                                        />
+                                        <InputError message={createForm.errors.whatsapp_catalog_phone} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
                             <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                                 Cancelar
@@ -643,6 +687,13 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
                             className={`pb-2 border-b-2 transition-colors ${activeTab === 'appearance' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
                         >
                             Apariencia y SEO
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('whatsapp')}
+                            className={`pb-2 border-b-2 transition-colors ${activeTab === 'whatsapp' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
+                        >
+                            Catálogo WhatsApp
                         </button>
                     </div>
 
@@ -888,6 +939,33 @@ export default function StoresIndex({ stores, filters, status, message }: Stores
                                             value={editForm.data.meta_description}
                                             onChange={(e) => editForm.setData('meta_description', e.target.value)}
                                         />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'whatsapp' && (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="edit_whatsapp_catalog_id">WhatsApp Catalog ID</Label>
+                                        <Input
+                                            id="edit_whatsapp_catalog_id"
+                                            value={editForm.data.whatsapp_catalog_id}
+                                            onChange={(e) => editForm.setData('whatsapp_catalog_id', e.target.value)}
+                                            placeholder="Ingresa el ID del Catálogo de Meta..."
+                                        />
+                                        <InputError message={editForm.errors.whatsapp_catalog_id} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="edit_whatsapp_catalog_phone">Teléfono del Catálogo</Label>
+                                        <Input
+                                            id="edit_whatsapp_catalog_phone"
+                                            value={editForm.data.whatsapp_catalog_phone}
+                                            onChange={(e) => editForm.setData('whatsapp_catalog_phone', e.target.value)}
+                                            placeholder="Ej: 5491112345678"
+                                        />
+                                        <InputError message={editForm.errors.whatsapp_catalog_phone} />
                                     </div>
                                 </div>
                             </div>

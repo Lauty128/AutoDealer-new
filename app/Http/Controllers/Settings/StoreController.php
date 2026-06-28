@@ -43,6 +43,18 @@ class StoreController extends Controller
             abort(403, 'No tienes permisos para configurar este concesionario.');
         }
 
+        // Build WhatsApp support URL
+        $supportPhone = config('services.whatsapp.support_phone', '');
+        $activationTemplate = config('services.whatsapp.activation_message', 'Hola! Deseo habilitar el catálogo de WhatsApp para el concesionario: {store_name} (ID: {store_id}).');
+
+        $activationMessage = str_replace(
+            ['{store_name}', '{store_id}'],
+            [$activeStore->name, $activeStore->id],
+            $activationTemplate
+        );
+
+        $whatsappSupportUrl = 'https://wa.me/'.preg_replace('/\D/', '', $supportPhone).'?text='.urlencode($activationMessage);
+
         return Inertia::render('settings/store', [
             'stores' => $stores->filter(function ($store) {
                 return $store->pivot->role === 'owner' || $store->pivot->role === 'manager';
@@ -53,6 +65,7 @@ class StoreController extends Controller
                 ];
             })->values(),
             'activeStore' => $activeStore,
+            'whatsappSupportUrl' => $whatsappSupportUrl,
             'status' => $request->session()->get('status'),
             'message' => $request->session()->get('message'),
         ]);

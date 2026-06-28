@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Store;
 use App\Models\Plan;
+use App\Models\Store;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -53,6 +53,8 @@ class AdminStoreController extends Controller
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string|max:255',
             'whatsapp' => 'nullable|string|max:255',
+            'whatsapp_catalog_id' => 'nullable|string|max:255',
+            'whatsapp_catalog_phone' => 'nullable|string|max:255',
             'instagram' => 'nullable|string|max:255',
             'facebook' => 'nullable|string|max:255',
             'tiktok' => 'nullable|string|max:255',
@@ -114,6 +116,8 @@ class AdminStoreController extends Controller
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string|max:255',
             'whatsapp' => 'nullable|string|max:255',
+            'whatsapp_catalog_id' => 'nullable|string|max:255',
+            'whatsapp_catalog_phone' => 'nullable|string|max:255',
             'instagram' => 'nullable|string|max:255',
             'facebook' => 'nullable|string|max:255',
             'tiktok' => 'nullable|string|max:255',

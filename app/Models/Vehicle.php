@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Jobs\SyncVehicleToMetaCatalog;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Vehicle extends Model
 {
@@ -45,6 +47,20 @@ class Vehicle extends Model
                 $vehicle->generateSlug();
             }
         });
+
+        static::saved(function ($vehicle) {
+            $store = $vehicle->store;
+            if ($store && $store->whatsapp_access_token && $store->whatsapp_catalog_id) {
+                dispatch(new SyncVehicleToMetaCatalog($store->id, $vehicle->id, 'UPDATE'));
+            }
+        });
+
+        static::deleted(function ($vehicle) {
+            $store = $vehicle->store;
+            if ($store && $store->whatsapp_access_token && $store->whatsapp_catalog_id) {
+                dispatch(new SyncVehicleToMetaCatalog($store->id, $vehicle->id, 'DELETE'));
+            }
+        });
     }
 
     /**
@@ -53,11 +69,11 @@ class Vehicle extends Model
     public function generateSlug()
     {
         $brandName = $this->mark ? $this->mark->name : '';
-        if (!$brandName && $this->vehicle_mark_id) {
+        if (! $brandName && $this->vehicle_mark_id) {
             $brandName = VehicleMark::find($this->vehicle_mark_id)?->name ?? '';
         }
 
-        $baseSlug = \Illuminate\Support\Str::slug($brandName . ' ' . $this->model . ' ' . $this->year);
+        $baseSlug = Str::slug($brandName.' '.$this->model.' '.$this->year);
         if (empty($baseSlug)) {
             $baseSlug = 'vehiculo';
         }
@@ -69,7 +85,7 @@ class Vehicle extends Model
             ->where('slug', $slug)
             ->where('id', '!=', $this->id)
             ->exists()) {
-            $slug = $baseSlug . '-' . $counter++;
+            $slug = $baseSlug.'-'.$counter++;
         }
 
         $this->slug = $slug;

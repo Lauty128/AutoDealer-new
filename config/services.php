@@ -41,4 +41,16 @@ return [
         'sandbox' => env('MERCADOPAGO_SANDBOX', true),
     ],
 
+    'meta' => [
+        'app_id' => env('META_APP_ID'),
+        'app_secret' => env('META_APP_SECRET'),
+        'access_token' => env('META_ACCESS_TOKEN'),
+        'api_version' => env('META_API_VERSION', 'v20.0'),
+    ],
+
+    'whatsapp' => [
+        'support_phone' => env('WHATSAPP_SUPPORT_PHONE', '5491134567890'),
+        'activation_message' => env('WHATSAPP_ACTIVATION_MESSAGE_TEMPLATE', 'Hola! Deseo habilitar el módulo de catálogo de WhatsApp para el concesionario: {store_name} (ID: {store_id}).'),
+    ],
+
 ];
