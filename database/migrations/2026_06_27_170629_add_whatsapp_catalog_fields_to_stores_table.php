@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->string('whatsapp_catalog_id')->nullable()->after('whatsapp_phone_number_id');
+            $table->string('whatsapp_catalog_id')->nullable()->after('whatsapp');
             $table->string('whatsapp_catalog_phone')->nullable()->after('whatsapp_catalog_id');
             $table->text('whatsapp_access_token')->nullable()->after('whatsapp_catalog_phone');
         });
