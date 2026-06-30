@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Store;
+use App\Services\ImageOptimizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -97,8 +98,8 @@ class StoreController extends Controller
             'facebook' => 'nullable|string|max:255',
             'tiktok' => 'nullable|string|max:255',
             'website' => 'nullable|string|max:255',
-            'logo_file' => 'nullable|image|max:2048', // 2MB max
-            'banner_file' => 'nullable|image|max:4096', // 4MB max
+            'logo_file' => 'nullable|image|max:5120', // 5MB max
+            'banner_file' => 'nullable|image|max:10240', // 10MB max
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'custom_css' => 'nullable|string',
@@ -123,7 +124,9 @@ class StoreController extends Controller
                 $oldPath = str_replace('/storage/', '', $store->logo);
                 Storage::disk('public')->delete($oldPath);
             }
-            $logoPath = $request->file('logo_file')->store('stores/logos', 'public');
+            $file = $request->file('logo_file');
+            ImageOptimizer::optimize($file);
+            $logoPath = $file->store('stores/logos', 'public');
             $validated['logo'] = Storage::url($logoPath);
         }
 
@@ -134,7 +137,9 @@ class StoreController extends Controller
                 $oldPath = str_replace('/storage/', '', $store->banner);
                 Storage::disk('public')->delete($oldPath);
             }
-            $bannerPath = $request->file('banner_file')->store('stores/banners', 'public');
+            $file = $request->file('banner_file');
+            ImageOptimizer::optimize($file);
+            $bannerPath = $file->store('stores/banners', 'public');
             $validated['banner'] = Storage::url($bannerPath);
         }
 

@@ -9,6 +9,7 @@ use App\Models\VehicleImage;
 use App\Models\VehicleMark;
 use App\Models\VehicleType;
 use App\Models\VehicleTypeTemplate;
+use App\Services\ImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -150,8 +151,8 @@ class VehicleController extends Controller
             'mileage' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'status' => 'required|string|in:available,reserved,sold',
-            'cover_image_file' => 'nullable|image|max:2048', // 2MB max
-            'images_files.*' => 'nullable|image|max:2048', // 2MB max
+            'cover_image_file' => 'nullable|image|max:10240', // 10MB max
+            'images_files.*' => 'nullable|image|max:10240', // 10MB max
             'details' => 'nullable|array',
         ];
 
@@ -172,6 +173,7 @@ class VehicleController extends Controller
 
             // Handle cover image upload
             if ($request->hasFile('cover_image_file')) {
+                ImageOptimizer::optimize($request->file('cover_image_file'));
                 $path = $request->file('cover_image_file')->store('vehicles/covers', 'public');
                 $vehicleData['cover_image'] = Storage::url($path);
             }
@@ -182,6 +184,7 @@ class VehicleController extends Controller
             if ($request->hasFile('images_files')) {
                 $sortOrder = 1;
                 foreach ($request->file('images_files') as $file) {
+                    ImageOptimizer::optimize($file);
                     $path = $file->store('vehicles/galleries', 'public');
                     $vehicle->images()->create([
                         'path' => Storage::url($path),
@@ -232,8 +235,8 @@ class VehicleController extends Controller
             'mileage' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'status' => 'required|string|in:available,reserved,sold',
-            'cover_image_file' => 'nullable|image|max:2048', // 2MB max
-            'images_files.*' => 'nullable|image|max:2048', // 2MB max
+            'cover_image_file' => 'nullable|image|max:10240', // 10MB max
+            'images_files.*' => 'nullable|image|max:10240', // 10MB max
             'delete_images' => 'nullable|array',
             'delete_images.*' => 'integer|exists:vehicles_images,id',
             'details' => 'nullable|array',
@@ -260,6 +263,7 @@ class VehicleController extends Controller
                     $oldPath = str_replace('/storage/', '', $vehicle->cover_image);
                     Storage::disk('public')->delete($oldPath);
                 }
+                ImageOptimizer::optimize($request->file('cover_image_file'));
                 $path = $request->file('cover_image_file')->store('vehicles/covers', 'public');
                 $vehicleData['cover_image'] = Storage::url($path);
             }
@@ -284,6 +288,7 @@ class VehicleController extends Controller
                 // Find current max sort order
                 $maxSort = $vehicle->images()->max('sort_order') ?? 0;
                 foreach ($request->file('images_files') as $file) {
+                    ImageOptimizer::optimize($file);
                     $path = $file->store('vehicles/galleries', 'public');
                     $vehicle->images()->create([
                         'path' => Storage::url($path),

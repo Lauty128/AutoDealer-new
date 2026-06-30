@@ -749,7 +749,7 @@ export default function VehicleFormPage({
                                         >
                                             <Upload className="h-8 w-8 text-slate-300 mb-2" />
                                             <span className="text-xs font-bold text-slate-600 dark:text-zinc-400">Subir Portada</span>
-                                            <span className="text-[10px] text-slate-400 mt-1">PNG, JPG, WEBP. Máx 2MB</span>
+                                            <span className="text-[10px] text-slate-400 mt-1">PNG, JPG, WEBP. Máx 10MB</span>
                                         </div>
                                     )}
                                     <input

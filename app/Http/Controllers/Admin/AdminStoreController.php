@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Store;
 use App\Models\Plan;
+use App\Models\Store;
 use App\Models\Subscription;
+use App\Services\ImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -57,8 +58,8 @@ class AdminStoreController extends Controller
             'facebook' => 'nullable|string|max:255',
             'tiktok' => 'nullable|string|max:255',
             'website' => 'nullable|string|max:255',
-            'logo_file' => 'nullable|image|max:2048',
-            'banner_file' => 'nullable|image|max:4096',
+            'logo_file' => 'nullable|image|max:5120',
+            'banner_file' => 'nullable|image|max:10240',
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'presentation' => 'nullable|string',
@@ -71,13 +72,17 @@ class AdminStoreController extends Controller
 
         // Upload logo if sent
         if ($request->hasFile('logo_file')) {
-            $logoPath = $request->file('logo_file')->store('stores/logos', 'public');
+            $file = $request->file('logo_file');
+            ImageOptimizer::optimize($file);
+            $logoPath = $file->store('stores/logos', 'public');
             $validated['logo'] = Storage::url($logoPath);
         }
 
         // Upload banner if sent
         if ($request->hasFile('banner_file')) {
-            $bannerPath = $request->file('banner_file')->store('stores/banners', 'public');
+            $file = $request->file('banner_file');
+            ImageOptimizer::optimize($file);
+            $bannerPath = $file->store('stores/banners', 'public');
             $validated['banner'] = Storage::url($bannerPath);
         }
 
@@ -118,8 +123,8 @@ class AdminStoreController extends Controller
             'facebook' => 'nullable|string|max:255',
             'tiktok' => 'nullable|string|max:255',
             'website' => 'nullable|string|max:255',
-            'logo_file' => 'nullable|image|max:2048',
-            'banner_file' => 'nullable|image|max:4096',
+            'logo_file' => 'nullable|image|max:5120',
+            'banner_file' => 'nullable|image|max:10240',
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'presentation' => 'nullable|string',
@@ -136,7 +141,9 @@ class AdminStoreController extends Controller
                 $oldPath = str_replace('/storage/', '', $store->logo);
                 Storage::disk('public')->delete($oldPath);
             }
-            $logoPath = $request->file('logo_file')->store('stores/logos', 'public');
+            $file = $request->file('logo_file');
+            ImageOptimizer::optimize($file);
+            $logoPath = $file->store('stores/logos', 'public');
             $validated['logo'] = Storage::url($logoPath);
         }
 
@@ -146,7 +153,9 @@ class AdminStoreController extends Controller
                 $oldPath = str_replace('/storage/', '', $store->banner);
                 Storage::disk('public')->delete($oldPath);
             }
-            $bannerPath = $request->file('banner_file')->store('stores/banners', 'public');
+            $file = $request->file('banner_file');
+            ImageOptimizer::optimize($file);
+            $bannerPath = $file->store('stores/banners', 'public');
             $validated['banner'] = Storage::url($bannerPath);
         }
 

@@ -653,7 +653,7 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
                                 <div className="grid gap-3 p-4 bg-slate-50 dark:bg-zinc-800/40 rounded-xl border border-slate-200 dark:border-zinc-800">
                                     <div>
                                         <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-200">Logotipo de la Empresa</h3>
-                                        <p className="text-xs text-slate-500">Suba una imagen cuadrada, preferentemente con fondo transparente (Formatos permitidos: PNG, JPG, WEBP. Máximo: 2MB).</p>
+                                        <p className="text-xs text-slate-500">Suba una imagen cuadrada, preferentemente con fondo transparente (Formatos permitidos: PNG, JPG, WEBP. Máximo: 5MB).</p>
                                     </div>
 
                                     <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -685,7 +685,7 @@ export default function StoreSettings({ stores, activeStore, status, message }: 
                                 <div className="grid gap-3 p-4 bg-slate-50 dark:bg-zinc-800/40 rounded-xl border border-slate-200 dark:border-zinc-800">
                                     <div>
                                         <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-200">Banner de Cabecera</h3>
-                                        <p className="text-xs text-slate-500">Esta imagen se mostrará en la parte superior de tu portal de catálogo (Relación recomendada: 16:9 o 3:1. Máximo: 4MB).</p>
+                                        <p className="text-xs text-slate-500">Esta imagen se mostrará en la parte superior de tu portal de catálogo (Relación recomendada: 16:9 o 3:1. Máximo: 10MB).</p>
                                     </div>
 
                                     <div className="space-y-4">
