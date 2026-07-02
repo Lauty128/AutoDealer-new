@@ -45,6 +45,14 @@ class Vehicle extends Model
                 $vehicle->generateSlug();
             }
         });
+
+        static::saved(function ($vehicle) {
+            \Illuminate\Support\Facades\Cache::forget("store_{$vehicle->store_id}_filters");
+        });
+
+        static::deleted(function ($vehicle) {
+            \Illuminate\Support\Facades\Cache::forget("store_{$vehicle->store_id}_filters");
+        });
     }
 
     /**

@@ -43,9 +43,25 @@ class PublicCatalogController extends Controller
             ->get();
 
         // Get unique Marks and Types of the vehicles actually present in this store for clean filters,
-        // or just load all marks and types
-        $marks = VehicleMark::orderBy('name')->get();
-        $types = VehicleType::orderBy('name')->get();
+        // caching them to improve performance.
+        $cacheKey = "store_{$store->id}_filters";
+        $filters = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(24), function () use ($store) {
+            $marks = VehicleMark::whereHas('vehicles', function ($q) use ($store) {
+                $q->where('store_id', $store->id);
+            })->orderBy('name')->get();
+
+            $types = VehicleType::whereHas('vehicles', function ($q) use ($store) {
+                $q->where('store_id', $store->id);
+            })->orderBy('name')->get();
+
+            return [
+                'marks' => $marks,
+                'types' => $types,
+            ];
+        });
+
+        $marks = $filters['marks'];
+        $types = $filters['types'];
 
         // Load store-specific templates
         $storeTemplates = VehicleTypeTemplate::where('store_id', $store->id)->get();

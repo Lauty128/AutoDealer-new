@@ -14,6 +14,11 @@
 
         $seoTitle = $vehicle->mark->name . " " . $vehicle->model . " (" . $vehicle->year . ") • " . $store->name;
         $seoDesc = "Ficha técnica de " . $vehicle->mark->name . " " . $vehicle->model . " año " . $vehicle->year . ". Kilometraje: " . $formattedMileage . ". Combustible: " . ($vehicle->fuel_type ?: 'N/A') . ". Precio: " . $formattedPrice . " en " . $store->name . ".";
+
+        $phone = $store->whatsapp ?: $store->phone ?: '';
+        $cleanPhone = preg_replace('/\D/', '', $phone);
+        $message = "Hola! Estoy interesado en el vehículo " . $vehicle->mark->name . " " . $vehicle->model . " (" . $vehicle->year . ") publicado en su catálogo digital. ¿Está disponible?";
+        $waLink = "https://wa.me/" . $cleanPhone . "?text=" . urlencode($message);
     @endphp
 
     <title>{{ $seoTitle }}</title>
@@ -134,13 +139,23 @@
                 </a>
             </div>
 
-            @if($store->phone)
-                <a href="tel:{!! preg_replace('/\D/', '', $store->phone) !!}"
-                    class="bg-store-primary text-white hover:bg-slate-800 text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
-                    <i class="fa-solid fa-phone"></i>
-                    <span class="hidden sm:inline">Llamar Ahora</span>
-                </a>
-            @endif
+            <div class="flex items-center gap-2">
+                @if($cleanPhone)
+                    <a href="{{ $waLink }}" target="_blank" rel="noopener noreferrer"
+                        class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow-xs">
+                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                        <span class="hidden sm:inline">WhatsApp</span>
+                    </a>
+                @endif
+
+                @if($store->phone)
+                    <a href="tel:{!! preg_replace('/\D/', '', $store->phone) !!}"
+                        class="bg-store-primary text-white hover:bg-slate-800 text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
+                        <i class="fa-solid fa-phone"></i>
+                        <span class="hidden sm:inline">Llamar Ahora</span>
+                    </a>
+                @endif
+            </div>
         </div>
     </header>
 
@@ -160,12 +175,6 @@
             </span>
         </div>
 
-        @php
-            $phone = $store->whatsapp ?: $store->phone ?: '';
-            $cleanPhone = preg_replace('/\D/', '', $phone);
-            $message = "Hola! Estoy interesado en el vehículo " . $vehicle->mark->name . " " . $vehicle->model . " (" . $vehicle->year . ") publicado en su catálogo digital. ¿Está disponible?";
-            $waLink = "https://wa.me/" . $cleanPhone . "?text=" . urlencode($message);
-        @endphp
 
         <!-- Two Columns Layout Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

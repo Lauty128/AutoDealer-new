@@ -97,13 +97,30 @@
                 </div>
             </div>
 
-            @if($store->phone)
-                <a href="tel:{!! preg_replace('/\D/', '', $store->phone) !!}"
-                    class="bg-store-primary text-white hover:bg-slate-800 text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
-                    <i class="fa-solid fa-phone"></i>
-                    <span class="hidden sm:inline">Llamar Ahora</span>
-                </a>
-            @endif
+            <div class="flex items-center gap-2">
+                @php
+                    $waPhone = $store->whatsapp ?: $store->phone ?: '';
+                    $cleanWaPhone = preg_replace('/\D/', '', $waPhone);
+                    $waCatalogMessage = "Hola! Estoy visitando su catálogo digital y me gustaría hacer una consulta.";
+                    $waCatalogLink = "https://wa.me/" . $cleanWaPhone . "?text=" . urlencode($waCatalogMessage);
+                @endphp
+
+                @if($cleanWaPhone)
+                    <a href="{{ $waCatalogLink }}" target="_blank" rel="noopener noreferrer"
+                        class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow-xs">
+                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                        <span class="hidden sm:inline">WhatsApp</span>
+                    </a>
+                @endif
+
+                @if($store->phone)
+                    <a href="tel:{!! preg_replace('/\D/', '', $store->phone) !!}"
+                        class="bg-store-primary text-white hover:bg-slate-800 text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
+                        <i class="fa-solid fa-phone"></i>
+                        <span class="hidden sm:inline">Llamar Ahora</span>
+                    </a>
+                @endif
+            </div>
         </div>
     </header>
 
@@ -121,10 +138,10 @@
                 Catálogo Online
             </span>
             <h2 class="text-3xl md:text-4xl font-black mt-2 tracking-tight">{{ $store->name }}</h2>
-                <p class="text-slate-200 mt-1 flex items-center gap-1 text-sm">
-                    <i class="fa-solid fa-location-dot text-store-secondary shrink-0 mt-0.5"></i>
-                    {{ $store->address }}{{ $store->city ? ', ' . $store->city : '' }}{{ $store->province ? ', ' . $store->province : '' }}
-                </p>
+            <p class="text-slate-200 mt-1 flex items-center gap-1 text-sm">
+                <i class="fa-solid fa-location-dot text-store-secondary shrink-0 mt-0.5"></i>
+                {{ $store->address }}{{ $store->city ? ', ' . $store->city : '' }}{{ $store->province ? ', ' . $store->province : '' }}
+            </p>
         </div>
     </section>
 
@@ -167,10 +184,10 @@
                 <form action="{{ route('public.catalog', $store->slug) }}" method="GET" class="space-y-4 text-sm">
                     <div class="space-y-1">
                         <label for="search" class="text-xs font-semibold text-slate-500 uppercase">Modelo</label>
-                            <input id="search" type="text" name="search" placeholder="Ej: Corolla, Ranger..."
-                                value="{{ request('search') }}"
-                                class="w-full bg-slate-50 border border-slate-200 text-slate-950 text-sm rounded-lg focus:ring-store-secondary focus:border-store-secondary block pl-9 pr-2.5 py-2" />
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                        <input id="search" type="text" name="search" placeholder="Ej: Corolla, Ranger..."
+                            value="{{ request('search') }}"
+                            class="w-full bg-slate-50 border border-slate-200 text-slate-950 text-sm rounded-lg focus:ring-store-secondary focus:border-store-secondary block pl-9 pr-2.5 py-2" />
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
                     </div>
 
                     <div class="space-y-1">
@@ -231,6 +248,7 @@
                             <span class="truncate">Email: <strong>{{ $store->email }}</strong></span>
                         </div>
                     @endif
+                    @if($store->working_hours && count($store->working_hours) > 0)
                         <div class="pt-2 border-t border-slate-100">
                             <p class="font-bold text-slate-800 flex items-center gap-1.5 mb-1.5">
                                 <i class="fa-regular fa-clock text-store-secondary shrink-0"></i>
@@ -287,11 +305,12 @@
                                     @endif
 
                                     <!-- Status Badge -->
-                                    <span class="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full text-white shadow-sm {{
+                                    <span
+                                        class="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full text-white shadow-sm {{
                         $vehicle->status === 'available' ? 'bg-green-600/90' : (
                             $vehicle->status === 'reserved' ? 'bg-amber-500/90' :
                             'bg-red-600/90')
-                                                                                                        }}">
+                                                                                                                                }}">
                                         {{ $vehicle->status === 'available' ? 'Disponible' : (
                         $vehicle->status === 'reserved' ? 'Reservado' : 'Vendido') }}
                                     </span>
@@ -355,7 +374,8 @@
 
     <!-- Public Footer -->
     <footer class="max-w-[1200px] mx-auto px-4 mt-12 text-center text-xs text-slate-400 shrink-0">
-        &copy; {{ date('Y') }} {{ $store->name }}. Desarrollado con tecnología de AutoDealer. Todos los derechos
+        &copy; {{ date('Y') }} {{ $store->name }}. Desarrollado con tecnología de <a href="https://autodealer.com.ar"
+            style="color: var(--store-primary)">AutoDealer</a>. Todos los derechos
         reservados.
     </footer>
 </body>
