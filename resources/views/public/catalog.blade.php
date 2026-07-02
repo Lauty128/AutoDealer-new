@@ -25,6 +25,9 @@
     <!-- CSS and assets -->
     @vite(['resources/css/app.css'])
 
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <!-- Custom Store Colors and Injected Styles -->
     <style>
         :root {
@@ -97,11 +100,7 @@
             @if($store->phone)
                 <a href="tel:{!! preg_replace('/\D/', '', $store->phone) !!}"
                     class="bg-store-primary text-white hover:bg-slate-800 text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path
-                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
+                    <i class="fa-solid fa-phone"></i>
                     <span class="hidden sm:inline">Llamar Ahora</span>
                 </a>
             @endif
@@ -122,17 +121,10 @@
                 Catálogo Online
             </span>
             <h2 class="text-3xl md:text-4xl font-black mt-2 tracking-tight">{{ $store->name }}</h2>
-            @if($store->address || $store->city || $store->province)
                 <p class="text-slate-200 mt-1 flex items-center gap-1 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-store-secondary"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                        <circle cx="12" cy="10" r="3" />
-                    </svg>
+                    <i class="fa-solid fa-location-dot text-store-secondary shrink-0 mt-0.5"></i>
                     {{ $store->address }}{{ $store->city ? ', ' . $store->city : '' }}{{ $store->province ? ', ' . $store->province : '' }}
                 </p>
-            @endif
         </div>
     </section>
 
@@ -175,17 +167,10 @@
                 <form action="{{ route('public.catalog', $store->slug) }}" method="GET" class="space-y-4 text-sm">
                     <div class="space-y-1">
                         <label for="search" class="text-xs font-semibold text-slate-500 uppercase">Modelo</label>
-                        <div class="relative">
                             <input id="search" type="text" name="search" placeholder="Ej: Corolla, Ranger..."
                                 value="{{ request('search') }}"
                                 class="w-full bg-slate-50 border border-slate-200 text-slate-950 text-sm rounded-lg focus:ring-store-secondary focus:border-store-secondary block pl-9 pr-2.5 py-2" />
-                            <svg class="absolute left-3 top-2.5 h-4 w-4 text-slate-400"
-                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8" />
-                                <path d="m21 21-4.3-4.3" />
-                            </svg>
-                        </div>
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
                     </div>
 
                     <div class="space-y-1">
@@ -236,35 +221,19 @@
                 <div class="space-y-3 text-slate-600">
                     @if($store->phone)
                         <div class="flex items-center gap-2.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-store-secondary shrink-0"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path
-                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                            </svg>
+                            <i class="fa-solid fa-phone text-store-secondary shrink-0 text-xs"></i>
                             <span>Teléfono: <strong>{{ $store->phone }}</strong></span>
                         </div>
                     @endif
                     @if($store->email)
                         <div class="flex items-center gap-2.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-store-secondary shrink-0"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="20" height="16" rx="2" y="4" x="2" />
-                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                            </svg>
+                            <i class="fa-regular fa-envelope text-store-secondary shrink-0 text-sm"></i>
                             <span class="truncate">Email: <strong>{{ $store->email }}</strong></span>
                         </div>
                     @endif
-                    @if($store->working_hours)
                         <div class="pt-2 border-t border-slate-100">
                             <p class="font-bold text-slate-800 flex items-center gap-1.5 mb-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-store-secondary shrink-0"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <polyline points="12 6 12 12 16 14" />
-                                </svg>
+                                <i class="fa-regular fa-clock text-store-secondary shrink-0"></i>
                                 Horarios de Atención:
                             </p>
                             <div class="space-y-1">
@@ -289,13 +258,7 @@
 
             @if($vehicles->isEmpty())
                 <div class="bg-white p-12 rounded-2xl border border-slate-200 text-center shadow-xs">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300 mx-auto mb-2"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" x2="12" y1="8" y2="12" />
-                        <line x1="12" x2="12.01" y1="16" y2="16" />
-                    </svg>
+                    <i class="fa-solid fa-circle-exclamation text-3xl text-slate-300 mx-auto mb-2 block"></i>
                     <h4 class="font-bold text-slate-700">No hay vehículos disponibles</h4>
                     <p class="text-xs text-slate-400 mt-1">Intenta ajustando los filtros de búsqueda.</p>
                 </div>
@@ -355,34 +318,15 @@
                                         <div
                                             class="grid grid-cols-3 gap-2 mt-3 text-slate-500 text-xs border-t border-slate-100 py-2">
                                             <div class="flex items-center gap-1" title="Año">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0"
-                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                    stroke-linecap="round" stroke-linejoin="round">
-                                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                                                    <line x1="16" x2="16" y1="2" y2="6" />
-                                                    <line x1="8" x2="8" y1="2" y2="6" />
-                                                    <line x1="3" x2="21" y1="10" y2="10" />
-                                                </svg>
+                                                <i class="fa-solid fa-calendar-days text-slate-400 shrink-0"></i>
                                                 <span>{{ $vehicle->year }}</span>
                                             </div>
                                             <div class="flex items-center gap-1" title="Kilometraje">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0"
-                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                    stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="m12 14 4-4" />
-                                                    <path d="M3.34 19a10 10 0 1 1 17.32 0" />
-                                                </svg>
+                                                <i class="fa-solid fa-gauge-high text-slate-400 shrink-0"></i>
                                                 <span class="truncate">{{ $formattedMileage }}</span>
                                             </div>
                                             <div class="flex items-center gap-1" title="Combustible">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0"
-                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                    stroke-linecap="round" stroke-linejoin="round">
-                                                    <line x1="3" x2="15" y1="22" y2="22" />
-                                                    <line x1="4" x2="14" y1="9" y2="9" />
-                                                    <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18" />
-                                                    <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h1" />
-                                                </svg>
+                                                <i class="fa-solid fa-gas-pump text-slate-400 shrink-0"></i>
                                                 <span class="capitalize truncate">{{ $vehicle->fuel_type ?: 'N/A' }}</span>
                                             </div>
                                         </div>
